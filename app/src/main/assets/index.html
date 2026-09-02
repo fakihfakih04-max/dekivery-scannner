@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<title>Delivery Scanner</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f6f8;color:#17202a;font-family:Arial,sans-serif}
+.app{max-width:540px;margin:auto;padding:16px}.head{background:#111827;color:#fff;padding:20px;border-radius:20px;margin-bottom:14px}
+h1{margin:0 0 5px;font-size:25px}.muted{opacity:.75;font-size:13px}.card{background:#fff;border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 3px 16px #0001}
+h2{font-size:19px;margin:0 0 12px}button,input{width:100%;min-height:48px;border-radius:12px;font-size:16px}
+button{border:0;padding:12px;background:#111827;color:white;font-weight:700;margin-top:9px}button.secondary{background:#e9edf2;color:#17202a}
+button.wa{background:#128c7e}.file{padding:12px;border:1px dashed #aeb7c2;background:#fafbfc}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{display:block;font-size:13px;font-weight:700;margin:9px 0 5px}
+input{border:1px solid #d6dbe1;padding:11px}#preview{display:none;width:100%;max-height:320px;object-fit:contain;border-radius:14px;margin-top:10px;background:#eef1f4}
+.status{font-size:13px;color:#5f6975;margin-top:9px}.order{border:1px solid #e1e5e9;border-radius:13px;padding:11px;margin-top:9px}.small{font-size:13px;color:#68727d}
+</style>
+</head>
+<body>
+<main class="app">
+<section class="head"><h1>🚚 Delivery Scanner</h1><div class="muted">Camera or Gallery → Read → Confirm → WhatsApp → Save</div></section>
+
+<section class="card">
+<h2>📷 Order Paper</h2>
+<label for="photo">Choose a photo</label>
+<input class="file" id="photo" type="file" accept="image/*" capture="environment">
+<img id="preview" alt="Selected order paper">
+<button id="scan" type="button">🤖 Read Paper</button>
+<div id="status" class="status">You can take a new photo with Camera or select an existing photo from Gallery.</div>
+</section>
+
+<section class="card">
+<h2>🧾 Confirm Order</h2>
+<label>Name</label><input id="name" placeholder="Customer name">
+<label>Phone</label><input id="phone" inputmode="tel" placeholder="03xxxxxx">
+<div class="row">
+<div><label>Order $</label><input id="order" inputmode="decimal" placeholder="269"></div>
+<div><label>Delivery $</label><input id="delivery" inputmode="decimal" placeholder="5"></div>
+</div>
+<label>Total $</label><input id="total" readonly>
+<button id="save" type="button">💾 Save Order</button>
+<button id="whatsapp" class="wa" type="button">💬 WhatsApp Customer</button>
+</section>
+
+<section class="card">
+<h2>📊 Daily Report</h2>
+<label>Date</label><input id="reportDate" type="date">
+<div id="reportSummary" class="small">No orders for this date.</div>
+<button id="sendReport" class="wa" type="button">📤 Send Report to Store Owner</button>
+</section>
+
+<section class="card">
+<h2>📦 Saved Orders</h2><div id="orders"><div class="small">No saved orders yet.</div></div>
+</section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const photo=$('photo'),preview=$('preview'),status=$('status'),name=$('name'),phone=$('phone'),order=$('order'),delivery=$('delivery'),total=$('total');
+function calc(){total.value=((parseFloat(order.value)||0)+(parseFloat(delivery.value)||0)).toFixed(2)}
+order.addEventListener('input',calc);delivery.addEventListener('input',calc);
+photo.addEventListener('change',()=>{const f=photo.files[0];if(!f)return;preview.src=URL.createObjectURL(f);preview.style.display='block';});
+function cleanPhone(v){v=(v||'').replace(/[^\d+]/g,'');if(v.startsWith('03'))v='+961'+v.slice(1);else if(v.startsWith('3'))v='+961'+v;return v}
+function extract(text){
+ const lines=text.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+ const pm=text.match(/(?:\+?961[\s-]?)?0?3[\s-]?\d{6}/);
+ const money=[...text.matchAll(/(?:\$|USD|LBP)?\s*(\d{1,6}(?:[.,]\d{1,2})?)/gi)].map(m=>parseFloat(m[1].replace(',','.'))).filter(n=>n>0&&n<100000);
+ if(pm)phone.value=cleanPhone(pm[0]);
+ const filtered=lines.filter(l=>!/(phone|tel|mobile|total|delivery|order|usd|lbp|\$)/i.test(l));
+ if(filtered.length)name.value=filtered[0].replace(/[^A-Za-zÀ-ÿ\u0600-\u06FF0-9 .'-]/g,'').trim();
+ if(money.length>=2){order.value=money[money.length-2];delivery.value=money[money.length-1]}else if(money.length)order.value=money[0];
+ calc();
+}
+$('scan').onclick=async()=>{
+ const f=photo.files[0];if(!f){status.textContent='Choose a photo first.';return}
+ status.textContent='Reading paper…';$('scan').disabled=true;
+ try{const r=await Tesseract.recognize(f,'eng+ara',{logger:m=>{if(m.progress)status.textContent='Reading paper… '+Math.round(m.progress*100)+'%'}});extract(r.data.text);status.textContent='Done — verify the data before saving.'}
+ catch(e){status.textContent='Could not read the paper. Enter the data manually.'}
+ $('scan').disabled=false;
+};
+function getOrders(){try{return JSON.parse(localStorage.getItem('delivery_orders')||'[]')}catch{return[]}}
+function dateKey(ts){return new Date(ts).toISOString().slice(0,10)}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function render(){const a=getOrders(),b=$('orders');b.innerHTML='';if(!a.length){b.innerHTML='<div class="small">No saved orders yet.</div>';return}a.slice().reverse().forEach(o=>{const d=document.createElement('div');d.className='order';d.innerHTML='<b>'+escapeHtml(o.name||'Customer')+'</b><div>'+escapeHtml(o.phone||'')+' · $'+o.total.toFixed(2)+'</div><div class="small">'+new Date(o.time).toLocaleString()+'</div>';b.appendChild(d)})}
+const reportDate=$('reportDate'),summary=$('reportSummary');reportDate.value=new Date().toISOString().slice(0,10);
+function updateReport(){const a=getOrders().filter(o=>dateKey(o.time)===reportDate.value),os=a.reduce((s,o)=>s+o.order,0),ds=a.reduce((s,o)=>s+o.delivery,0),ts=a.reduce((s,o)=>s+o.total,0);summary.innerHTML='<b>'+a.length+'</b> orders<br>Orders: <b>$'+os.toFixed(2)+'</b> · Delivery: <b>$'+ds.toFixed(2)+'</b><br>Grand Total: <b>$'+ts.toFixed(2)+'</b>'}
+reportDate.addEventListener('change',updateReport);
+$('save').onclick=()=>{calc();const o={name:name.value.trim(),phone:cleanPhone(phone.value),order:parseFloat(order.value)||0,delivery:parseFloat(delivery.value)||0,total:parseFloat(total.value)||0,time:Date.now()};if(!o.name&&!o.phone){status.textContent='Enter name or phone.';return}const a=getOrders();a.push(o);localStorage.setItem('delivery_orders',JSON.stringify(a));render();updateReport();status.textContent='Order saved.'};
+$('whatsapp').onclick=()=>{const p=cleanPhone(phone.value).replace('+','');if(!p){status.textContent='Enter phone first.';return}window.open('https://wa.me/'+p+'?text='+encodeURIComponent('Hello '+(name.value||'')+', your order total is $'+(parseFloat(total.value)||0).toFixed(2)+'.'),'_blank')};
+$('sendReport').onclick=()=>{const a=getOrders().filter(o=>dateKey(o.time)===reportDate.value);if(!a.length){status.textContent='No orders for this date.';return}const os=a.reduce((s,o)=>s+o.order,0),ds=a.reduce((s,o)=>s+o.delivery,0),ts=a.reduce((s,o)=>s+o.total,0),owner=prompt('Store owner WhatsApp number (e.g. 9613xxxxxx):');if(!owner)return;const msg='📊 Daily Delivery Report - '+reportDate.value+'\\n\\nOrders: '+a.length+'\\nOrder value: $'+os.toFixed(2)+'\\nDelivery: $'+ds.toFixed(2)+'\\nGRAND TOTAL: $'+ts.toFixed(2);window.open('https://wa.me/'+owner.replace(/\\D/g,'')+'?text='+encodeURIComponent(msg),'_blank')};
+calc();render();updateReport();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
