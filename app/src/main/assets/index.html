@@ -1,60 +1,67 @@
 <!doctype html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111827">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="manifest.json">
 <title>Delivery Scanner</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f4f6f8;color:#17202a;font-family:Arial,sans-serif}
 .app{max-width:540px;margin:auto;padding:16px}.head{background:#111827;color:#fff;padding:20px;border-radius:20px;margin-bottom:14px}
 h1{margin:0 0 5px;font-size:25px}.muted{opacity:.75;font-size:13px}.card{background:#fff;border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 3px 16px #0001}
 h2{font-size:19px;margin:0 0 12px}button,input{width:100%;min-height:48px;border-radius:12px;font-size:16px}
-button{border:0;padding:12px;background:#111827;color:white;font-weight:700;margin-top:9px}button.secondary{background:#e9edf2;color:#17202a}
+button{border:0;padding:12px;background:#111827;color:#fff;font-weight:700;margin-top:9px}button:disabled{opacity:.55}
 button.wa{background:#128c7e}.file{padding:12px;border:1px dashed #aeb7c2;background:#fafbfc}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{display:block;font-size:13px;font-weight:700;margin:9px 0 5px}
-input{border:1px solid #d6dbe1;padding:11px}#preview{display:none;width:100%;max-height:320px;object-fit:contain;border-radius:14px;margin-top:10px;background:#eef1f4}
-.status{font-size:13px;color:#5f6975;margin-top:9px}.order{border:1px solid #e1e5e9;border-radius:13px;padding:11px;margin-top:9px}.small{font-size:13px;color:#68727d}
+input{border:1px solid #d6dbe1;padding:11px;direction:auto}#preview{display:none;width:100%;max-height:320px;object-fit:contain;border-radius:14px;margin-top:10px;background:#eef1f4}
+.status{font-size:13px;color:#5f6975;margin-top:9px}.ok{color:#087443}.bad{color:#a32121}
+.order{border:1px solid #e1e5e9;border-radius:13px;padding:11px;margin-top:9px}.small{font-size:13px;color:#68727d}
 </style>
 </head>
 <body>
 <main class="app">
-<section class="head"><h1>🚚 Delivery Scanner</h1><div class="muted">Camera or Gallery → Read → Confirm → WhatsApp → Save</div></section>
+<section class="head"><h1>🚚 Delivery Scanner</h1><div class="muted">صوّر الورقة أو اختار صورة → قراءة → تأكيد → WhatsApp → حفظ</div></section>
 
 <section class="card">
-<h2>📷 Order Paper</h2>
-<label for="photo">Choose a photo</label>
+<h2>📷 ورقة الأوردر</h2>
+<label for="photo">تصوير بالكاميرا أو اختيار من Gallery</label>
 <input class="file" id="photo" type="file" accept="image/*" capture="environment">
-<img id="preview" alt="Selected order paper">
-<button id="scan" type="button">🤖 Read Paper</button>
-<div id="status" class="status">You can take a new photo with Camera or select an existing photo from Gallery.</div>
+<img id="preview" alt="صورة ورقة الأوردر">
+<button id="scan" type="button">🤖 اقرأ الورقة بدقة</button>
+<div id="status" class="status">بعد القراءة راجع رقم الهاتف والمبلغ قبل الحفظ.</div>
 </section>
 
 <section class="card">
-<h2>🧾 Confirm Order</h2>
-<label>Name</label><input id="name" placeholder="Customer name">
-<label>Phone</label><input id="phone" inputmode="tel" placeholder="03xxxxxx">
+<h2>🧾 تأكيد الأوردر</h2>
+<label>اسم الزبون</label><input id="name" placeholder="اسم الزبون">
+<label>رقم الهاتف</label><input id="phone" inputmode="tel" placeholder="03xxxxxx / 71xxxxxx">
 <div class="row">
-<div><label>Order $</label><input id="order" inputmode="decimal" placeholder="269"></div>
-<div><label>Delivery $</label><input id="delivery" inputmode="decimal" placeholder="5"></div>
+<div><label>سعر الأوردر $</label><input id="order" inputmode="decimal" placeholder="269"></div>
+<div><label>الدليفري $</label><input id="delivery" inputmode="decimal" placeholder="5"></div>
 </div>
-<label>Total $</label><input id="total" readonly>
-<button id="save" type="button">💾 Save Order</button>
-<button id="whatsapp" class="wa" type="button">💬 WhatsApp Customer</button>
+<label>المجموع $</label><input id="total" readonly>
+<button id="save" type="button">💾 حفظ الأوردر</button>
+<button id="whatsapp" class="wa" type="button">💬 WhatsApp للزبون</button>
+</section>
+
+
+<section class="card">
+<h2>⚙️ Store Manager</h2>
+<label>Manager WhatsApp</label>
+<input id="managerPhone" inputmode="tel" placeholder="03xxxxxx / 71xxxxxx">
+<button id="saveManager" type="button">💾 Save Manager Number</button>
+<div id="managerStatus" class="status"></div>
 </section>
 
 <section class="card">
-<h2>📊 Daily Report</h2>
-<label>Date</label><input id="reportDate" type="date">
-<div id="reportSummary" class="small">No orders for this date.</div>
-<button id="sendReport" class="wa" type="button">📤 Send Report to Store Owner</button>
+<h2>📊 تقرير يومي</h2>
+<label>التاريخ</label><input id="reportDate" type="date">
+<div id="reportSummary" class="small"></div>
+<button id="sendReport" class="wa" type="button">📤 إرسال التقرير لصاحب المتجر</button>
 </section>
 
 <section class="card">
-<h2>📦 Saved Orders</h2><div id="orders"><div class="small">No saved orders yet.</div></div>
+<h2>📦 الأوردرات المحفوظة</h2><div id="orders"><div class="small">لا يوجد أوردرات بعد.</div></div>
 </section>
 </main>
 
@@ -62,39 +69,194 @@ input{border:1px solid #d6dbe1;padding:11px}#preview{display:none;width:100%;max
 <script>
 const $=id=>document.getElementById(id);
 const photo=$('photo'),preview=$('preview'),status=$('status'),name=$('name'),phone=$('phone'),order=$('order'),delivery=$('delivery'),total=$('total');
+
+function setStatus(t,cls=''){status.className='status '+cls;status.textContent=t}
 function calc(){total.value=((parseFloat(order.value)||0)+(parseFloat(delivery.value)||0)).toFixed(2)}
 order.addEventListener('input',calc);delivery.addEventListener('input',calc);
 photo.addEventListener('change',()=>{const f=photo.files[0];if(!f)return;preview.src=URL.createObjectURL(f);preview.style.display='block';});
-function cleanPhone(v){v=(v||'').replace(/[^\d+]/g,'');if(v.startsWith('03'))v='+961'+v.slice(1);else if(v.startsWith('3'))v='+961'+v;return v}
-function extract(text){
- const lines=text.split(/\n+/).map(x=>x.trim()).filter(Boolean);
- const pm=text.match(/(?:\+?961[\s-]?)?0?3[\s-]?\d{6}/);
- const money=[...text.matchAll(/(?:\$|USD|LBP)?\s*(\d{1,6}(?:[.,]\d{1,2})?)/gi)].map(m=>parseFloat(m[1].replace(',','.'))).filter(n=>n>0&&n<100000);
- if(pm)phone.value=cleanPhone(pm[0]);
- const filtered=lines.filter(l=>!/(phone|tel|mobile|total|delivery|order|usd|lbp|\$)/i.test(l));
- if(filtered.length)name.value=filtered[0].replace(/[^A-Za-zÀ-ÿ\u0600-\u06FF0-9 .'-]/g,'').trim();
- if(money.length>=2){order.value=money[money.length-2];delivery.value=money[money.length-1]}else if(money.length)order.value=money[0];
- calc();
+
+function normalizeDigits(s){
+ const ar='٠١٢٣٤٥٦٧٨٩', fa='۰۱۲۳۴۵۶۷۸۹';
+ return String(s||'').replace(/[٠-٩]/g,c=>String(ar.indexOf(c))).replace(/[۰-۹]/g,c=>String(fa.indexOf(c)));
 }
+function digitsOnly(s){return normalizeDigits(s).replace(/\D/g,'')}
+function normalizeLebanonPhone(v){
+ let d=digitsOnly(v);
+ if(!d)return '';
+ if(d.startsWith('00961'))d=d.slice(5);
+ else if(d.startsWith('961'))d=d.slice(3);
+ if(d.startsWith('0'))d=d.slice(1);
+ // Lebanese mobile prefixes commonly used for WhatsApp
+ if(/^(3|70|71|76|78|79|81)\d{6}$/.test(d)) return '961'+d;
+ return '';
+}
+function phoneCandidates(text){
+ const t=normalizeDigits(text).replace(/[()]/g,' ');
+ const matches=t.match(/(?:00?961[\s-]?)?(?:0?)(?:3|70|71|76|78|79|81)[\s-]?\d{3}[\s-]?\d{3}/g)||[];
+ return matches.map(normalizeLebanonPhone).filter(Boolean);
+}
+function moneyValue(s){
+ const m=normalizeDigits(s).replace(/,/g,'.').match(/(?:\d{1,6}(?:\.\d{1,2})?)/);
+ return m?parseFloat(m[1]):null;
+}
+function moneyCandidates(text){
+ const t=normalizeDigits(text);
+ const out=[];
+ const re=/(?:\$|usd|دولار)?\s*(\d{1,6}(?:[.,]\d{1,2})?)/gi;
+ let m;
+ while((m=re.exec(t))){
+   const n=moneyValue(m[1]);
+   if(n!==null && n>0 && n<100000) out.push({n,at:m.index,raw:m[0]});
+ }
+ return out;
+}
+function findLabeledNumber(text, labels){
+ const lines=normalizeDigits(text).split(/\n+/).map(s=>s.trim()).filter(Boolean);
+ for(const line of lines){
+   const low=line.toLowerCase();
+   if(labels.some(x=>low.includes(x))){
+     const n=moneyValue(line);
+     if(n!==null)return n;
+   }
+ }
+ return null;
+}
+function findName(text){
+ const lines=normalizeDigits(text).split(/\n+/).map(s=>s.trim()).filter(Boolean);
+ const labels=['name','customer','الاسم','اسم الزبون','الزبون'];
+ for(let i=0;i<lines.length;i++){
+   const low=lines[i].toLowerCase();
+   if(labels.some(x=>low.includes(x))){
+     let v=lines[i].replace(/^(name|customer|الاسم|اسم الزبون|الزبون)\s*[:：-]?\s*/i,'').trim();
+     if(v.length>1 && !/\d/.test(v))return v;
+     if(lines[i+1] && !/\d/.test(lines[i+1]))return lines[i+1];
+   }
+ }
+ const candidates=lines.filter(l=>l.length>1 && !/\d/.test(l) && !/(phone|tel|mobile|total|delivery|order|usd|lbp|دليفري|هاتف|موبايل|رقم|المجموع|طلب|سعر)/i.test(l));
+ return candidates[0]||'';
+}
+function parseReceipt(text){
+ const clean=normalizeDigits(text);
+ const lines=clean.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+ const phones=phoneCandidates(clean);
+ if(phones.length) phone.value=phones[0];
+
+ const nameVal=findName(clean); if(nameVal) name.value=nameVal;
+
+ // Prefer numbers on lines containing explicit labels.
+ let orderVal=findLabeledNumber(clean,['order','amount','subtotal','طلب','السعر','قيمة الطلب']);
+ let deliveryVal=findLabeledNumber(clean,['delivery','delivery fee','shipping','دليفري','توصيل','أجرة التوصيل']);
+ const monies=moneyCandidates(clean);
+
+ // For a common "269 + 5 delivery" layout, use the last two money values.
+ if(orderVal===null && deliveryVal===null && monies.length>=2){
+   orderVal=monies[monies.length-2].n;
+   deliveryVal=monies[monies.length-1].n;
+ } else if(orderVal===null && monies.length) {
+   orderVal=monies[0].n;
+ }
+ if(deliveryVal===null){
+   const deliveryLine=lines.find(l=>/(delivery|shipping|دليفري|توصيل)/i.test(l));
+   if(deliveryLine) deliveryVal=moneyValue(deliveryLine);
+ }
+ if(orderVal!==null) order.value=orderVal;
+ if(deliveryVal!==null) delivery.value=deliveryVal;
+ calc();
+
+ const missing=[];
+ if(!phone.value)missing.push('رقم الهاتف');
+ if(!order.value)missing.push('سعر الأوردر');
+ setStatus(missing.length?'القراءة تمت، لكن راجع/أدخل: '+missing.join(' و '):'تمت القراءة. تأكد من البيانات ثم احفظ.','ok');
+}
+
+async function preprocess(file){
+ return new Promise(resolve=>{
+   const img=new Image(),url=URL.createObjectURL(file);
+   img.onload=()=>{
+     const max=1800,scale=Math.min(max/Math.max(img.width,img.height),2.5);
+     const c=document.createElement('canvas');
+     c.width=Math.max(1,Math.round(img.width*scale));c.height=Math.max(1,Math.round(img.height*scale));
+     const ctx=c.getContext('2d');ctx.drawImage(img,0,0,c.width,c.height);
+     const d=ctx.getImageData(0,0,c.width,c.height);
+     for(let i=0;i<d.data.length;i+=4){
+       const g=0.299*d.data[i]+0.587*d.data[i+1]+0.114*d.data[i+2];
+       const v=g>155?255:0;
+       d.data[i]=d.data[i+1]=d.data[i+2]=v;
+     }
+     ctx.putImageData(d,0,0);c.toBlob(b=>{URL.revokeObjectURL(url);resolve(b)},'image/png',1);
+   };
+   img.onerror=()=>{URL.revokeObjectURL(url);resolve(file)};
+   img.src=url;
+ });
+}
+
 $('scan').onclick=async()=>{
- const f=photo.files[0];if(!f){status.textContent='Choose a photo first.';return}
- status.textContent='Reading paper…';$('scan').disabled=true;
- try{const r=await Tesseract.recognize(f,'eng+ara',{logger:m=>{if(m.progress)status.textContent='Reading paper… '+Math.round(m.progress*100)+'%'}});extract(r.data.text);status.textContent='Done — verify the data before saving.'}
- catch(e){status.textContent='Could not read the paper. Enter the data manually.'}
- $('scan').disabled=false;
+ const f=photo.files[0];if(!f){setStatus('اختار أو صوّر الورقة أولاً.','bad');return}
+ const btn=$('scan');btn.disabled=true;setStatus('جاري تحسين الصورة وقراءة الورقة…');
+ try{
+   const processed=await preprocess(f);
+   const r=await Tesseract.recognize(processed,'eng+ara',{
+     logger:m=>{if(m.status&&m.progress) setStatus('جاري القراءة: '+Math.round(m.progress*100)+'%')}
+   });
+   parseReceipt(r.data.text);
+   console.log('OCR TEXT:',r.data.text);
+ }catch(e){console.error(e);setStatus('ما قدرنا نقرأ الورقة. أدخل البيانات يدوياً أو جرّب صورة أوضح.','bad')}
+ btn.disabled=false;
 };
+
 function getOrders(){try{return JSON.parse(localStorage.getItem('delivery_orders')||'[]')}catch{return[]}}
 function dateKey(ts){return new Date(ts).toISOString().slice(0,10)}
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
-function render(){const a=getOrders(),b=$('orders');b.innerHTML='';if(!a.length){b.innerHTML='<div class="small">No saved orders yet.</div>';return}a.slice().reverse().forEach(o=>{const d=document.createElement('div');d.className='order';d.innerHTML='<b>'+escapeHtml(o.name||'Customer')+'</b><div>'+escapeHtml(o.phone||'')+' · $'+o.total.toFixed(2)+'</div><div class="small">'+new Date(o.time).toLocaleString()+'</div>';b.appendChild(d)})}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function render(){
+ const a=getOrders(),b=$('orders');b.innerHTML='';
+ if(!a.length){b.innerHTML='<div class="small">لا يوجد أوردرات بعد.</div>';return}
+ a.slice().reverse().forEach(o=>{const d=document.createElement('div');d.className='order';d.innerHTML='<b>'+esc(o.name||'زبون')+'</b><div>'+esc(o.phone||'')+' · $'+Number(o.total||0).toFixed(2)+'</div><div class="small">'+new Date(o.time).toLocaleString()+'</div>';b.appendChild(d)})
+}
 const reportDate=$('reportDate'),summary=$('reportSummary');reportDate.value=new Date().toISOString().slice(0,10);
-function updateReport(){const a=getOrders().filter(o=>dateKey(o.time)===reportDate.value),os=a.reduce((s,o)=>s+o.order,0),ds=a.reduce((s,o)=>s+o.delivery,0),ts=a.reduce((s,o)=>s+o.total,0);summary.innerHTML='<b>'+a.length+'</b> orders<br>Orders: <b>$'+os.toFixed(2)+'</b> · Delivery: <b>$'+ds.toFixed(2)+'</b><br>Grand Total: <b>$'+ts.toFixed(2)+'</b>'}
+function updateReport(){
+ const a=getOrders().filter(o=>dateKey(o.time)===reportDate.value);
+ const os=a.reduce((s,o)=>s+Number(o.order||0),0),ds=a.reduce((s,o)=>s+Number(o.delivery||0),0),ts=a.reduce((s,o)=>s+Number(o.total||0),0);
+ summary.innerHTML='<b>'+a.length+'</b> أوردر<br>الأوردرات: <b>$'+os.toFixed(2)+'</b> · الدليفري: <b>$'+ds.toFixed(2)+'</b><br>Grand Total: <b>$'+ts.toFixed(2)+'</b>';
+}
 reportDate.addEventListener('change',updateReport);
-$('save').onclick=()=>{calc();const o={name:name.value.trim(),phone:cleanPhone(phone.value),order:parseFloat(order.value)||0,delivery:parseFloat(delivery.value)||0,total:parseFloat(total.value)||0,time:Date.now()};if(!o.name&&!o.phone){status.textContent='Enter name or phone.';return}const a=getOrders();a.push(o);localStorage.setItem('delivery_orders',JSON.stringify(a));render();updateReport();status.textContent='Order saved.'};
-$('whatsapp').onclick=()=>{const p=cleanPhone(phone.value).replace('+','');if(!p){status.textContent='Enter phone first.';return}window.open('https://wa.me/'+p+'?text='+encodeURIComponent('Hello '+(name.value||'')+', your order total is $'+(parseFloat(total.value)||0).toFixed(2)+'.'),'_blank')};
-$('sendReport').onclick=()=>{const a=getOrders().filter(o=>dateKey(o.time)===reportDate.value);if(!a.length){status.textContent='No orders for this date.';return}const os=a.reduce((s,o)=>s+o.order,0),ds=a.reduce((s,o)=>s+o.delivery,0),ts=a.reduce((s,o)=>s+o.total,0),owner=prompt('Store owner WhatsApp number (e.g. 9613xxxxxx):');if(!owner)return;const msg='📊 Daily Delivery Report - '+reportDate.value+'\\n\\nOrders: '+a.length+'\\nOrder value: $'+os.toFixed(2)+'\\nDelivery: $'+ds.toFixed(2)+'\\nGRAND TOTAL: $'+ts.toFixed(2);window.open('https://wa.me/'+owner.replace(/\\D/g,'')+'?text='+encodeURIComponent(msg),'_blank')};
+
+$('save').onclick=()=>{
+ calc();
+ const p=normalizeLebanonPhone(phone.value);
+ if(!p){setStatus('رقم الهاتف غير واضح. أدخل الرقم اللبناني الصحيح قبل الحفظ.','bad');return}
+ const o={name:name.value.trim(),phone:p,order:parseFloat(order.value)||0,delivery:parseFloat(delivery.value)||0,total:parseFloat(total.value)||0,time:Date.now()};
+ if(!o.name){setStatus('أدخل اسم الزبون.','bad');return}
+ const a=getOrders();a.push(o);localStorage.setItem('delivery_orders',JSON.stringify(a));render();updateReport();setStatus('تم حفظ الأوردر.','ok');
+};
+
+$('whatsapp').onclick=()=>{
+ const p=normalizeLebanonPhone(phone.value);
+ if(!p){setStatus('رقم الهاتف غير صحيح. استخدم مثلاً 03xxxxxx أو 71xxxxxx.','bad');return}
+ const msg='مرحبا '+(name.value||'')+'، طلبكم بقيمة $'+(parseFloat(total.value)||0).toFixed(2)+'.';
+ // wa.me requires international digits, no plus.
+ window.location.href='https://wa.me/'+p+'?text='+encodeURIComponent(msg);
+};
+
+const managerPhone=$('managerPhone'),managerStatus=$('managerStatus');
+managerPhone.value=localStorage.getItem('manager_whatsapp')||'';
+$('saveManager').onclick=()=>{
+ const p=normalizeLebanonPhone(managerPhone.value);
+ if(!p){managerStatus.textContent='أدخل رقم WhatsApp لبناني صحيح مثل 03xxxxxx أو 71xxxxxx.';managerStatus.className='status bad';return}
+ localStorage.setItem('manager_whatsapp',p);
+ managerPhone.value=p;
+ managerStatus.textContent='تم حفظ رقم Store Manager.';
+ managerStatus.className='status ok';
+};
+$('sendReport').onclick=()=>{
+ const a=getOrders().filter(o=>dateKey(o.time)===reportDate.value);
+ if(!a.length){setStatus('لا يوجد أوردرات لهذا التاريخ.','bad');return}
+ const p=localStorage.getItem('manager_whatsapp')||normalizeLebanonPhone(managerPhone.value);
+ if(!p){managerStatus.textContent='احفظ رقم Store Manager أولاً.';managerStatus.className='status bad';return}
+ const os=a.reduce((s,o)=>s+Number(o.order||0),0),ds=a.reduce((s,o)=>s+Number(o.delivery||0),0),ts=a.reduce((s,o)=>s+Number(o.total||0),0);
+ const msg='📊 تقرير الدليفري - '+reportDate.value+'\n\nعدد الأوردرات: '+a.length+'\nقيمة الأوردرات: $'+os.toFixed(2)+'\nالدليفري: $'+ds.toFixed(2)+'\nGRAND TOTAL: $'+ts.toFixed(2);
+ window.location.href='https://wa.me/'+p+'?text='+encodeURIComponent(msg);
+};
 calc();render();updateReport();
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>
