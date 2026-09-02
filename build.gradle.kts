@@ -1,8 +1,26 @@
-compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
 }
 
-kotlinOptions {
-    jvmTarget = "17"
+android {
+    namespace = "com.sff.deliveryscanner"
+    compileSdk = 35
+
+    defaultConfig {
+        applicationId = "com.sff.deliveryscanner"
+        minSdk = 23
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0"
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
 }
