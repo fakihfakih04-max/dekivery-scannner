@@ -15,7 +15,12 @@ button.wa{background:#128c7e}.file{padding:12px;border:1px dashed #aeb7c2;backgr
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{display:block;font-size:13px;font-weight:700;margin:9px 0 5px}
 input{border:1px solid #d6dbe1;padding:11px;direction:auto}#preview{display:none;width:100%;max-height:320px;object-fit:contain;border-radius:14px;margin-top:10px;background:#eef1f4}
 .status{font-size:13px;color:#5f6975;margin-top:9px}.ok{color:#087443}.bad{color:#a32121}
-.order{border:1px solid #e1e5e9;border-radius:13px;padding:11px;margin-top:9px}.small{font-size:13px;color:#68727d}
+.order{border:1px solid #e1e5e9;border-radius:13px;padding:13px;margin-top:10px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
+.actions button{margin-top:0;min-height:44px;font-size:14px}
+button.edit{background:#2563eb}button.del{background:#dc2626}button.cancelOrder{background:#6b7280}
+.invoice{background:#f8fafc;border-radius:12px;padding:10px;margin-top:8px;font-size:13px;line-height:1.8}
+.small{font-size:13px;color:#68727d}
 </style>
 </head>
 <body>
@@ -39,8 +44,24 @@ input{border:1px solid #d6dbe1;padding:11px;direction:auto}#preview{display:none
 <div><label>سعر الأوردر $</label><input id="order" inputmode="decimal" placeholder="269"></div>
 <div><label>الدليفري $</label><input id="delivery" inputmode="decimal" placeholder="5"></div>
 </div>
-<label>المجموع $</label><input id="total" readonly>
+<label>مين بيدفع الدليفري؟</label>
+<select id="deliveryPayer" style="width:100%;min-height:48px;border:1px solid #d6dbe1;border-radius:12px;padding:11px;font-size:16px">
+<option value="customer">👤 الزبون يدفع الدليفري</option>
+<option value="store">🏪 المتجر يتحمل الدليفري — Free Delivery</option>
+<option value="already_paid">✅ الدليفري مدفوع مسبقاً</option>
+</select>
+<label>حالة الدفع</label>
+<select id="paymentStatus" style="width:100%;min-height:48px;border:1px solid #d6dbe1;border-radius:12px;padding:11px;font-size:16px">
+<option value="cod">💵 Cash on Delivery</option>
+<option value="paid">✅ مدفوع</option>
+<option value="partial">🟡 مدفوع جزئياً</option>
+</select>
+<label>المبلغ المدفوع $</label><input id="paid" inputmode="decimal" placeholder="0">
+<div id="remainingBox" class="status"></div>
+<label>المجموع على الزبون $</label><input id="total" readonly>
+<div id="collectHint" class="status"></div>
 <button id="save" type="button">💾 حفظ الأوردر</button>
+<button id="cancelEdit" type="button" style="display:none;background:#6b7280">✖️ إلغاء التعديل</button>
 <button id="whatsapp" class="wa" type="button">💬 WhatsApp للزبون</button>
 </section>
 
@@ -61,18 +82,31 @@ input{border:1px solid #d6dbe1;padding:11px;direction:auto}#preview{display:none
 </section>
 
 <section class="card">
-<h2>📦 الأوردرات المحفوظة</h2><div id="orders"><div class="small">لا يوجد أوردرات بعد.</div></div>
+<h2>📦 الأوردرات المحفوظة</h2>
+<div class="small" style="margin-bottom:8px">كل أوردر فيه WhatsApp + تعديل + حذف.</div>
+<div id="orders"><div class="small">لا يوجد أوردرات بعد.</div></div>
 </section>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 const $=id=>document.getElementById(id);
-const photo=$('photo'),preview=$('preview'),status=$('status'),name=$('name'),phone=$('phone'),order=$('order'),delivery=$('delivery'),total=$('total');
+const photo=$('photo'),preview=$('preview'),status=$('status'),name=$('name'),phone=$('phone'),order=$('order'),delivery=$('delivery'),paid=$('paid'),total=$('total');
 
 function setStatus(t,cls=''){status.className='status '+cls;status.textContent=t}
-function calc(){total.value=((parseFloat(order.value)||0)+(parseFloat(delivery.value)||0)).toFixed(2)}
-order.addEventListener('input',calc);delivery.addEventListener('input',calc);
+function calc(){
+ const ord=parseFloat(order.value)||0, del=parseFloat(delivery.value)||0, p=Math.max(0,parseFloat(paid.value)||0);
+ const payer=$('deliveryPayer').value, ps=$('paymentStatus').value;
+ const customerTotal=ord + (payer==='customer'?del:0);
+ total.value=customerTotal.toFixed(2);
+ let due=ps==='paid'?0:Math.max(0,customerTotal-p);
+ if(ps==='cod') due=customerTotal;
+ if(ps==='partial') due=Math.max(0,customerTotal-p);
+ $('remainingBox').textContent='💵 المدفوع: $'+p.toFixed(2)+'  |  🔴 المتبقي: $'+due.toFixed(2)+'  |  💰 تحصيل الآن: $'+due.toFixed(2);
+ $('collectHint').textContent=due>0?'المبلغ المطلوب تحصيله الآن: $'+due.toFixed(2):'لا يوجد مبلغ متبقٍ للتحصيل.';
+ return {customerTotal,paid:p,remaining:due};
+}
+order.addEventListener('input',calc);delivery.addEventListener('input',calc);paid.addEventListener('input',calc);$('deliveryPayer').addEventListener('change',calc);$('paymentStatus').addEventListener('change',calc);
 photo.addEventListener('change',()=>{const f=photo.files[0];if(!f)return;preview.src=URL.createObjectURL(f);preview.style.display='block';});
 
 function normalizeDigits(s){
@@ -206,17 +240,112 @@ $('scan').onclick=async()=>{
 
 function getOrders(){try{return JSON.parse(localStorage.getItem('delivery_orders')||'[]')}catch{return[]}}
 function dateKey(ts){return new Date(ts).toISOString().slice(0,10)}
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function payerLabel(v){
+ if(v==='store') return '🏪 المتجر يتحمل الدليفري';
+ if(v==='already_paid') return '✅ الدليفري مدفوع مسبقاً';
+ return '👤 الزبون يدفع الدليفري';
+}
+function paymentLabel(v){
+ if(v==='paid') return '✅ مدفوع';
+ if(v==='partial') return '🟡 مدفوع جزئياً';
+ return '💵 Cash on Delivery';
+}
+function collectAmount(o){
+ const ord=Number(o.order||0), del=Number(o.delivery||0), p=Number(o.paid||0);
+ const customerTotal=ord + ((o.deliveryPayer||'customer')==='customer'?del:0);
+ if((o.paymentStatus||'cod')==='paid') return 0;
+ if((o.paymentStatus||'cod')==='partial') return Math.max(0,customerTotal-p);
+ return Math.max(0,customerTotal-p);
+}
 function render(){
  const a=getOrders(),b=$('orders');b.innerHTML='';
  if(!a.length){b.innerHTML='<div class="small">لا يوجد أوردرات بعد.</div>';return}
- a.slice().reverse().forEach(o=>{const d=document.createElement('div');d.className='order';d.innerHTML='<b>'+esc(o.name||'زبون')+'</b><div>'+esc(o.phone||'')+' · $'+Number(o.total||0).toFixed(2)+'</div><div class="small">'+new Date(o.time).toLocaleString()+'</div>';b.appendChild(d)})
+ a.slice().reverse().forEach((o,reverseIndex)=>{
+   const i=a.length-1-reverseIndex;
+   const d=document.createElement('div');d.className='order';
+   d.innerHTML=
+   '<b>👤 '+esc(o.name||'زبون')+'</b>'+
+   '<div class="invoice">'+
+   '📱 '+esc(o.phone||'')+'<br>'+
+   '🧾 قيمة الأوردر: <b>$'+Number(o.order||0).toFixed(2)+'</b><br>'+
+   '🚚 الدليفري: <b>$'+Number(o.delivery||0).toFixed(2)+'</b><br>'+
+   esc(payerLabel(o.deliveryPayer))+'<br>'+
+   '💳 '+esc(paymentLabel(o.paymentStatus))+'<br>'+
+   '💵 المدفوع: <b>$'+Number(o.paid||0).toFixed(2)+'</b><br>'+
+   '🔴 المتبقي: <b>$'+collectAmount(o).toFixed(2)+'</b><br>'+
+   '💰 المطلوب تحصيله الآن: <b>$'+collectAmount(o).toFixed(2)+'</b>'+
+   '</div>'+
+   '<div class="small">📅 '+new Date(o.time).toLocaleString()+'</div>'+
+   '<div class="actions">'+
+   '<button class="wa" onclick="whatsappOrder('+i+')">💬 WhatsApp</button>'+
+   '<button class="edit" onclick="editOrder('+i+')">✏️ تعديل</button>'+
+   '<button class="del" onclick="deleteOrder('+i+')">🗑️ حذف</button>'+
+   '<button class="cancelOrder" onclick="cancelSavedOrder('+i+')">↩️ إلغاء</button>'+
+   '</div>';
+   b.appendChild(d);
+ })
+}
+function clearForm(){
+ name.value='';phone.value='';order.value='';delivery.value='';paid.value='';deliveryPayer.value='customer';paymentStatus.value='cod';calc();
+ $('photo').value='';preview.style.display='none';
+}
+function enterEdit(index){
+ const a=getOrders(),o=a[index];if(!o)return;
+ name.value=o.name||''; phone.value=o.phone||'';
+ order.value=Number(o.order||0); delivery.value=Number(o.delivery||0);
+ deliveryPayer.value=o.deliveryPayer||'customer';
+ paymentStatus.value=o.paymentStatus||'cod';
+ paid.value=Number(o.paid||0);
+ if(o.remaining!=null) $('collectHint').dataset.remaining=o.remaining;
+ localStorage.setItem('editing_order_index',String(index));
+ $('save').textContent='🔄 تحديث الأوردر';
+ $('cancelEdit').style.display='block';
+ calc();
+ window.scrollTo({top:document.querySelector('.card:nth-of-type(2)').offsetTop-10,behavior:'smooth'});
+ setStatus('عم تعدّل الأوردر: '+(o.name||''),'ok');
+}
+function editOrder(index){enterEdit(index)}
+function deleteOrder(index){
+ const a=getOrders(),o=a[index];if(!o)return;
+ if(!confirm('تأكيد حذف أوردر '+(o.name||'')+'؟'))return;
+ a.splice(index,1);localStorage.setItem('delivery_orders',JSON.stringify(a));
+ if(Number(localStorage.getItem('editing_order_index'))===index) cancelEdit();
+ render();updateReport();setStatus('تم حذف الأوردر.','ok');
+}
+function cancelSavedOrder(index){
+ const a=getOrders(),o=a[index];if(!o)return;
+ if(!confirm('إلغاء أوردر '+(o.name||'')+'؟ سيبقى محفوظاً لكن حالته ستكون ملغى.'))return;
+ a[index]={...o,status:'cancelled'};
+ localStorage.setItem('delivery_orders',JSON.stringify(a));render();updateReport();
+}
+function cancelEdit(){
+ localStorage.removeItem('editing_order_index');
+ $('save').textContent='💾 حفظ الأوردر';
+ $('cancelEdit').style.display='none';
+ clearForm();setStatus('تم إلغاء التعديل.','ok');
+}
+$('cancelEdit').onclick=cancelEdit;
+
+function whatsappOrder(index){
+ const a=getOrders(),o=a[index];if(!o)return;
+ const p=normalizeLebanonPhone(o.phone);
+ if(!p){setStatus('رقم WhatsApp غير صحيح لهذا الأوردر.','bad');return}
+ const msg='مرحباً '+(o.name||'')+'، بخصوص طلبكم. قيمة الأوردر $'+Number(o.order||0).toFixed(2)+
+ ' والدليفري $'+Number(o.delivery||0).toFixed(2)+'. المبلغ المطلوب عند التسليم $'+collectAmount(o).toFixed(2)+'.';
+ window.location.href='https://wa.me/'+p+'?text='+encodeURIComponent(msg);
 }
 const reportDate=$('reportDate'),summary=$('reportSummary');reportDate.value=new Date().toISOString().slice(0,10);
 function updateReport(){
- const a=getOrders().filter(o=>dateKey(o.time)===reportDate.value);
- const os=a.reduce((s,o)=>s+Number(o.order||0),0),ds=a.reduce((s,o)=>s+Number(o.delivery||0),0),ts=a.reduce((s,o)=>s+Number(o.total||0),0);
- summary.innerHTML='<b>'+a.length+'</b> أوردر<br>الأوردرات: <b>$'+os.toFixed(2)+'</b> · الدليفري: <b>$'+ds.toFixed(2)+'</b><br>Grand Total: <b>$'+ts.toFixed(2)+'</b>';
+ const a=getOrders().filter(o=>dateKey(o.time)===reportDate.value && o.status!=='cancelled');
+ const os=a.reduce((s,o)=>s+Number(o.order||0),0),ds=a.reduce((s,o)=>s+Number(o.delivery||0),0);
+ const storeDel=a.filter(o=>(o.deliveryPayer||'customer')==='store').reduce((s,o)=>s+Number(o.delivery||0),0);
+ const custDel=a.filter(o=>(o.deliveryPayer||'customer')==='customer').reduce((s,o)=>s+Number(o.delivery||0),0);
+ const paidDel=a.filter(o=>(o.deliveryPayer||'customer')==='already_paid').reduce((s,o)=>s+Number(o.delivery||0),0);
+ const collect=a.reduce((s,o)=>s+collectAmount(o),0);
+ const paidTotal=a.reduce((s,o)=>s+Number(o.paid||0),0);
+ const remainingTotal=a.reduce((s,o)=>s+collectAmount(o),0);
+ summary.innerHTML='<b>'+a.length+'</b> أوردر<br>قيمة المنتجات: <b>$'+os.toFixed(2)+'</b> · إجمالي الدليفري: <b>$'+ds.toFixed(2)+'</b><br>المتجر يتحمل: <b>$'+storeDel.toFixed(2)+'</b> · الزبائن: <b>$'+custDel.toFixed(2)+'</b> · مدفوع مسبقاً: <b>$'+paidDel.toFixed(2)+'</b><br>المطلوب تحصيله: <b>$'+collect.toFixed(2)+'</b>';
 }
 reportDate.addEventListener('change',updateReport);
 
@@ -224,16 +353,29 @@ $('save').onclick=()=>{
  calc();
  const p=normalizeLebanonPhone(phone.value);
  if(!p){setStatus('رقم الهاتف غير واضح. أدخل الرقم اللبناني الصحيح قبل الحفظ.','bad');return}
- const o={name:name.value.trim(),phone:p,order:parseFloat(order.value)||0,delivery:parseFloat(delivery.value)||0,total:parseFloat(total.value)||0,time:Date.now()};
+ const editing=localStorage.getItem('editing_order_index');
+ const idx=editing===null?null:Number(editing);
+ const old=idx!==null?getOrders()[idx]:null;
+ const calcData=calc();
+ const o={
+   name:name.value.trim(),phone:p,order:parseFloat(order.value)||0,delivery:parseFloat(delivery.value)||0,
+   total:calcData.customerTotal,paid:calcData.paid,remaining:calcData.remaining,deliveryPayer:deliveryPayer.value,paymentStatus:paymentStatus.value,
+   time:old?.time||Date.now(),status:old?.status||'active'
+ };
  if(!o.name){setStatus('أدخل اسم الزبون.','bad');return}
- const a=getOrders();a.push(o);localStorage.setItem('delivery_orders',JSON.stringify(a));render();updateReport();setStatus('تم حفظ الأوردر.','ok');
+ const a=getOrders();
+ if(idx!==null && a[idx]) a[idx]=o; else a.push(o);
+ localStorage.setItem('delivery_orders',JSON.stringify(a));
+ localStorage.removeItem('editing_order_index');
+ render();updateReport();clearForm();
+ $('save').textContent='💾 حفظ الأوردر';$('cancelEdit').style.display='none';
+ setStatus(idx!==null?'تم تحديث الأوردر بنجاح.':'تم حفظ الأوردر.','ok');
 };
 
 $('whatsapp').onclick=()=>{
  const p=normalizeLebanonPhone(phone.value);
  if(!p){setStatus('رقم الهاتف غير صحيح. استخدم مثلاً 03xxxxxx أو 71xxxxxx.','bad');return}
  const msg='مرحبا '+(name.value||'')+'، طلبكم بقيمة $'+(parseFloat(total.value)||0).toFixed(2)+'.';
- // wa.me requires international digits, no plus.
  window.location.href='https://wa.me/'+p+'?text='+encodeURIComponent(msg);
 };
 
@@ -247,16 +389,41 @@ $('saveManager').onclick=()=>{
  managerStatus.textContent='تم حفظ رقم Store Manager.';
  managerStatus.className='status ok';
 };
+
 $('sendReport').onclick=()=>{
- const a=getOrders().filter(o=>dateKey(o.time)===reportDate.value);
+ const a=getOrders().filter(o=>dateKey(o.time)===reportDate.value && o.status!=='cancelled');
  if(!a.length){setStatus('لا يوجد أوردرات لهذا التاريخ.','bad');return}
  const p=localStorage.getItem('manager_whatsapp')||normalizeLebanonPhone(managerPhone.value);
  if(!p){managerStatus.textContent='احفظ رقم Store Manager أولاً.';managerStatus.className='status bad';return}
- const os=a.reduce((s,o)=>s+Number(o.order||0),0),ds=a.reduce((s,o)=>s+Number(o.delivery||0),0),ts=a.reduce((s,o)=>s+Number(o.total||0),0);
- const msg='📊 تقرير الدليفري - '+reportDate.value+'\n\nعدد الأوردرات: '+a.length+'\nقيمة الأوردرات: $'+os.toFixed(2)+'\nالدليفري: $'+ds.toFixed(2)+'\nGRAND TOTAL: $'+ts.toFixed(2);
+ const os=a.reduce((s,o)=>s+Number(o.order||0),0),ds=a.reduce((s,o)=>s+Number(o.delivery||0),0);
+ const storeDel=a.filter(o=>(o.deliveryPayer||'customer')==='store').reduce((s,o)=>s+Number(o.delivery||0),0);
+ const custDel=a.filter(o=>(o.deliveryPayer||'customer')==='customer').reduce((s,o)=>s+Number(o.delivery||0),0);
+ const paidDel=a.filter(o=>(o.deliveryPayer||'customer')==='already_paid').reduce((s,o)=>s+Number(o.delivery||0),0);
+ const collect=a.reduce((s,o)=>s+collectAmount(o),0);
+ const paidTotal=a.reduce((s,o)=>s+Number(o.paid||0),0);
+ const remainingTotal=a.reduce((s,o)=>s+collectAmount(o),0);
+ let msg='━━━━━━━━━━━━━━━━━━━━\\n🚚 DELIVERY DAILY REPORT\\n'+reportDate.value+'\\n━━━━━━━━━━━━━━━━━━━━\\n\\n';
+ a.forEach((o,i)=>{
+   msg+='📦 ORDER #'+String(i+1).padStart(3,'0')+'\\n';
+   msg+='👤 Customer: '+(o.name||'زبون')+'\\n';
+   msg+='📱 Phone: '+(o.phone||'-')+'\\n';
+   msg+='🧾 Order: $'+Number(o.order||0).toFixed(2)+'\\n';
+   msg+='🚚 Delivery: $'+Number(o.delivery||0).toFixed(2)+' — '+payerLabel(o.deliveryPayer||'customer')+'\\n';
+   msg+='💳 Payment: '+paymentLabel(o.paymentStatus||'cod')+'\\n';
+   msg+='💰 TO COLLECT: $'+collectAmount(o).toFixed(2)+'\\n';
+   msg+='────────────────────\\n';
+ });
+ msg+='\\n📊 SUMMARY\\n';
+ msg+='Orders: '+a.length+'\\n';
+ msg+='Products Total: $'+os.toFixed(2)+'\\n';
+ msg+='Delivery Total: $'+ds.toFixed(2)+'\\n';
+ msg+='Store Delivery Cost: $'+storeDel.toFixed(2)+'\\n';
+ msg+='Customer Delivery: $'+custDel.toFixed(2)+'\\n';
+ msg+='Already Paid Delivery: $'+paidDel.toFixed(2)+'\\n';
+ msg+='━━━━━━━━━━━━━━━━━━━━\\n';
+ msg+='💵 TOTAL TO COLLECT: $'+collect.toFixed(2)+'\\n';
+ msg+='━━━━━━━━━━━━━━━━━━━━';
  window.location.href='https://wa.me/'+p+'?text='+encodeURIComponent(msg);
 };
+
 calc();render();updateReport();
-</script>
-</body>
-</html>
