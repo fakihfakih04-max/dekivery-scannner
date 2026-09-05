@@ -113,12 +113,10 @@ button.edit{background:#2563eb}button.del{background:#dc2626}button.cancelOrder{
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 const $=id=>document.getElementById(id);
-const photo=$('photo'),preview=$('preview'),status=$('status'),name=$('name'),phone=$('phone'),order=$('order'),delivery=$('delivery'),paid=$('paid'),total=$('total');
-const deliveryPayer=$('deliveryPayer'),paymentStatus=$('paymentStatus'),saveBtn=$('save'),cancelEditBtn=$('cancelEdit'),whatsappBtn=$('whatsapp');
+const photo=$('photo'),preview=$('preview'),status=$('status'),name=$('name'),phone=$('phone'),order=$('order'),delivery=$('delivery'),paid=$('paid'),total=$('total'),deliveryPayer=$('deliveryPayer'),paymentStatus=$('paymentStatus');
 const API_BASE='https://dekivery-scannner.onrender.com';
 let currentPhotoData='';
 let onlineMode=true;
-window.addEventListener('error',e=>{console.error('JS ERROR',e.error||e.message);setStatus('❌ خطأ بالتطبيق: '+(e.message||'Unknown error'),'bad')});
 
 function setStatus(t,cls=''){status.className='status '+cls;status.textContent=t}
 function calc(){
@@ -133,7 +131,7 @@ function calc(){
  $('collectHint').textContent=due>0?'المبلغ المطلوب تحصيله الآن: $'+due.toFixed(2):'لا يوجد مبلغ متبقٍ للتحصيل.';
  return {customerTotal,paid:p,remaining:due};
 }
-order.addEventListener('input',calc);delivery.addEventListener('input',calc);paid.addEventListener('input',calc);deliveryPayer.addEventListener('change',calc);paymentStatus.addEventListener('change',calc);
+order.addEventListener('input',calc);delivery.addEventListener('input',calc);paid.addEventListener('input',calc);$('deliveryPayer').addEventListener('change',calc);$('paymentStatus').addEventListener('change',calc);
 function fileToDataUrl(file,maxW=1400){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const scale=Math.min(1,maxW/img.width);const c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);const ctx=c.getContext('2d');ctx.drawImage(img,0,0,c.width,c.height);resolve(c.toDataURL('image/jpeg',0.78));};img.onerror=reject;img.src=r.result;};r.onerror=reject;r.readAsDataURL(file);});}
 photo.addEventListener('change',async()=>{const f=photo.files[0];if(!f)return;try{currentPhotoData=await fileToDataUrl(f);preview.src=currentPhotoData;preview.style.display='block';setStatus('✅ تم حفظ صورة الورقة مؤقتاً. عند الحفظ ستبقى مع الأوردر.','ok');}catch(e){setStatus('تعذر تجهيز الصورة.','bad')}});
 
@@ -357,7 +355,7 @@ function cancelEdit(){
  $('cancelEdit').style.display='none';
  clearForm();setStatus('تم إلغاء التعديل.','ok');
 }
-cancelEditBtn.onclick=cancelEdit;
+$('cancelEdit').onclick=cancelEdit;
 
 function whatsappOrder(index){
  const a=getOrders(),o=a[index];if(!o)return;
@@ -381,7 +379,7 @@ function updateReport(){
 }
 reportDate.addEventListener('change',updateReport);
 
-saveBtn.onclick=async()=>{
+$('save').onclick=async()=>{
  calc();
  const p=normalizeLebanonPhone(phone.value);
  if(!p){setStatus('رقم الهاتف غير واضح. أدخل الرقم اللبناني الصحيح قبل الحفظ.','bad');return}
@@ -393,7 +391,7 @@ saveBtn.onclick=async()=>{
  if(!o.name){setStatus('أدخل اسم الزبون.','bad');return}
  try{setStatus('☁️ جاري الحفظ Online...');const saved=await saveOnline(o,old?.id);const a=getOrders();if(idx!==null&&a[idx])a[idx]=saved;else a.push(saved);setOrders(a);localStorage.removeItem('editing_order_index');render();updateReport();updateStoreStatement();clearForm();$('save').textContent='💾 حفظ الأوردر';$('cancelEdit').style.display='none';setStatus('✅ تم الحفظ Online مع صورة الأوردر.','ok')}catch(e){console.error(e);const a=getOrders();if(idx!==null&&a[idx])a[idx]=o;else a.push(o);setOrders(a);localStorage.removeItem('editing_order_index');render();updateReport();setStatus('⚠️ تم الحفظ محلياً فقط — Online غير متاح حالياً.','bad')}};
 
-whatsappBtn.onclick=()=>{
+$('whatsapp').onclick=()=>{
  const p=normalizeLebanonPhone(phone.value);
  if(!p){setStatus('رقم الهاتف غير صحيح. استخدم مثلاً 03xxxxxx أو 71xxxxxx.','bad');return}
  const msg='مرحبا '+(name.value||'')+'، طلبكم بقيمة $'+(parseFloat(total.value)||0).toFixed(2)+'.';
@@ -454,4 +452,7 @@ $('sendReport').onclick=()=>{
  window.location.href='https://wa.me/'+p+'?text='+encodeURIComponent(msg);
 };
 
-calc();render();updateReport();updateStoreStatement();syncFromOnline();
+try{calc();render();updateReport();updateStoreStatement();}catch(e){console.error('INIT ERROR',e);setStatus('⚠️ خطأ في تشغيل الصفحة: '+e.message,'bad')}
+syncFromOnline().catch(e=>console.error('SYNC ERROR',e));
+// Expose actions for Android WebView / inline handlers
+window.editOrder=editOrder;window.deleteOrder=deleteOrder;window.cancelSavedOrder=cancelSavedOrder;window.whatsappOrder=whatsappOrder;window.cancelEdit=cancelEdit;window.printA4=printA4;window.previewA4=previewA4;
