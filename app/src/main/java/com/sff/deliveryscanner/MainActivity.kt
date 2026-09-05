@@ -2,6 +2,7 @@ package com.sff.deliveryscanner
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -62,35 +63,80 @@ class MainActivity : Activity() {
     }
 
     private fun showCameraOrGallery() {
+        val options = arrayOf("📷 Camera", "🖼️ Gallery", "Cancel")
+        AlertDialog.Builder(this)
+            .setTitle("Choose Order Photo")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> {
+                        if (android.os.Build.VERSION.SDK_INT >= 23 &&
+                            checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                            requestPermissions(arrayOf(Manifest.permission.CAMERA), 2001)
+                        } else {
+                            openCamera()
+                        }
+                    }
+                    1 -> openGallery()
+                    else -> {
+                        uploadCallback?.onReceiveValue(null)
+                        uploadCallback = null
+                    }
+                }
+            }
+            .setOnCancelListener {
+                uploadCallback?.onReceiveValue(null)
+                uploadCallback = null
+            }
+            .show()
+    }
+
+    private fun openGallery() {
         val gallery = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "image/*"
             putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
         }
+        startActivityForResult(gallery, FILE_REQUEST)
+    }
+
+    private fun openCamera() {
         val camera = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        if (camera.resolveActivity(packageManager) != null) {
-            try {
-                val dir = File(cacheDir, "camera").apply { mkdirs() }
-                val file = File.createTempFile("delivery_", ".jpg", dir)
-                cameraUri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
-                camera.putExtra(MediaStore.EXTRA_OUTPUT, cameraUri)
-                camera.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                val chooser = Intent.createChooser(gallery, "تصوير بالكاميرا أو اختيار من Gallery")
-                chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(camera))
-                startActivityForResult(chooser, FILE_REQUEST)
-                return
-            } catch (_: Exception) {
-                cameraUri = null
+        if (camera.resolveActivity(packageManager) == null) {
+            android.widget.Toast.makeText(this, "Camera app not available", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
+        try {
+            val dir = File(cacheDir, "camera").apply { mkdirs() }
+            val file = File.createTempFile("delivery_", ".jpg", dir)
+            cameraUri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+            camera.putExtra(MediaStore.EXTRA_OUTPUT, cameraUri)
+            camera.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            camera.clipData = android.content.ClipData.newRawUri("DeliveryPhoto", cameraUri)
+            startActivityForResult(camera, CAMERA_REQUEST)
+        } catch (e: Exception) {
+            cameraUri = null
+            android.widget.Toast.makeText(this, "Cannot open camera: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+            uploadCallback?.onReceiveValue(null)
+            uploadCallback = null
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 2001) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                openCamera()
+            } else {
+                android.widget.Toast.makeText(this, "Camera permission is required to take a photo", android.widget.Toast.LENGTH_LONG).show()
             }
         }
-        startActivityForResult(gallery, FILE_REQUEST)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == FILE_REQUEST) {
+        if (requestCode == FILE_REQUEST || requestCode == CAMERA_REQUEST) {
             val result = if (resultCode == RESULT_OK) {
-                val uri = data?.data ?: cameraUri
+                val uri = if (requestCode == CAMERA_REQUEST) cameraUri else data?.data
                 if (uri != null) arrayOf(uri) else null
             } else null
             uploadCallback?.onReceiveValue(result)
@@ -98,4 +144,5 @@ class MainActivity : Activity() {
             cameraUri = null
         }
     }
+
 }
