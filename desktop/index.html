@@ -1,254 +1,67 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Delivery Scanner</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f3f4f6;color:#111827;font-family:Arial,sans-serif}
-.app{max-width:560px;margin:auto;padding:16px}.head{background:#111827;color:#fff;border-radius:20px;padding:20px;margin-bottom:14px}
-h1{margin:0 0 5px}h2{font-size:18px;margin:0 0 12px}.muted,.small{font-size:13px;color:#6b7280}
-.card{background:white;border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 3px 15px #0001}
-label{display:block;font-weight:700;margin:10px 0 5px}
-input,select,button{width:100%;min-height:48px;border-radius:12px;font-size:16px}
-input,select{border:1px solid #d1d5db;padding:10px;background:#fff}
-button{border:0;padding:11px;margin-top:9px;background:#111827;color:#fff;font-weight:700}
-button:disabled{opacity:.5}.wa{background:#128c7e}.scan{background:#374151}.danger{background:#b91c1c}.edit{background:#4b5563}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.preview{width:100%;max-height:280px;object-fit:contain;border-radius:12px;margin-top:10px;display:none}
-.status{padding:11px;border-radius:12px;background:#f3f4f6;margin-top:10px;min-height:20px}.ok{background:#dcfce7;color:#166534}.bad{background:#fee2e2;color:#991b1b}
-.order{border:1px solid #e5e7eb;border-radius:15px;padding:13px;margin:10px 0}.actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.actions button{margin-top:7px;min-height:42px;font-size:14px}.summary{line-height:1.9}
+*{box-sizing:border-box}body{margin:0;background:#f3f4f6;color:#111827;font-family:Arial,sans-serif}.app{max-width:720px;margin:auto;padding:16px}.head{background:#111827;color:#fff;border-radius:20px;padding:20px;margin-bottom:14px}h1{margin:0 0 5px}h2{font-size:18px;margin:0 0 12px}.small{font-size:13px;color:#6b7280}.card{background:#fff;border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 3px 15px #0001}label{display:block;font-weight:700;margin:10px 0 5px}input,select,button{width:100%;min-height:48px;border-radius:12px;font-size:16px}input,select{border:1px solid #d1d5db;padding:10px;background:#fff}button{border:0;padding:11px;margin-top:9px;background:#111827;color:#fff;font-weight:700}button:disabled{opacity:.5}.wa{background:#128c7e}.scan{background:#374151}.danger{background:#b91c1c}.edit{background:#4b5563}.blue{background:#2563eb}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.preview{width:100%;max-height:300px;object-fit:contain;border-radius:12px;margin-top:10px;display:none}.status{padding:11px;border-radius:12px;background:#f3f4f6;margin-top:10px;min-height:20px}.ok{background:#dcfce7;color:#166534}.bad{background:#fee2e2;color:#991b1b}.order{border:1px solid #e5e7eb;border-radius:15px;padding:13px;margin:10px 0}.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.actions button{margin-top:7px;min-height:42px;font-size:14px}.summary{line-height:1.9}.thumb{width:100%;max-height:130px;object-fit:contain;border-radius:10px;margin-top:8px}.tablewrap{overflow:auto}.statement table{width:100%;border-collapse:collapse;font-size:14px}.statement th,.statement td{padding:8px;border-bottom:1px solid #e5e7eb;text-align:right;white-space:nowrap}.statbox{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.stat{padding:12px;background:#f9fafb;border-radius:12px;text-align:center}.stat b{display:block;font-size:19px;margin-top:4px}.photo-note{font-size:12px;color:#6b7280;margin-top:6px}
+@media(max-width:600px){.actions{grid-template-columns:1fr 1fr}.statbox{grid-template-columns:1fr 1fr}}
 </style>
 </head>
-<body>
-<div class="app">
-<div class="head"><h1>🚚 Delivery Scanner</h1><div>تصوير الورقة • حفظ الأوردر • WhatsApp</div></div>
+<body><div class="app">
+<div class="head"><h1>🚚 Delivery Scanner</h1><div>تصوير الورقة • حفظ الأوردر • Online • تقرير A4 • Statement</div></div>
 
-<div class="card">
-<h2>📷 قراءة ورقة الطلب</h2>
-<input id="photo" type="file" accept="image/*" capture="environment">
-<img id="preview" class="preview">
-<button id="scan" class="scan" type="button">📷 Read Picture</button>
-<div id="status" class="status">جاهز.</div>
-</div>
+<div class="card"><h2>📷 صورة ورقة الطلب</h2><input id="photo" type="file" accept="image/*" capture="environment"><img id="preview" class="preview"><div class="photo-note">الصورة تنحفظ مع الأوردر أونلاين، وبتظهر داخل تقرير A4.</div><button id="scan" class="scan" type="button">📷 Read Picture</button><div id="status" class="status">جاهز.</div></div>
 
-<div class="card">
-<h2>🧾 بيانات الأوردر</h2>
-<label>اسم الزبون</label><input id="name" type="text" autocomplete="off">
-<label>رقم الهاتف</label><input id="phone" type="tel" autocomplete="off">
-<div class="row">
-<div><label>قيمة الأوردر</label><input id="order" type="number" step="0.01"></div>
-<div><label>الدليفري</label><input id="delivery" type="number" step="0.01"></div>
-</div>
-<label>مين بيدفع الدليفري؟</label>
-<select id="deliveryPayer">
-<option value="customer">الزبون</option><option value="store">المتجر</option><option value="already_paid">مدفوع مسبقاً</option>
-</select>
-<label>حالة الدفع</label>
-<select id="paymentStatus">
-<option value="cod">Cash on Delivery</option><option value="partial">مدفوع جزئياً</option><option value="paid">مدفوع</option>
-</select>
-<label>المبلغ المدفوع</label><input id="paid" type="number" step="0.01" value="0">
-<label>الإجمالي على الزبون</label><input id="total" type="number" step="0.01" readonly>
-<div id="remainingBox" class="status"></div>
-<button id="save" type="button">💾 حفظ الأوردر</button>
-<button id="cancelEdit" class="edit" type="button" style="display:none">إلغاء التعديل</button>
-<button id="whatsapp" class="wa" type="button">💬 WhatsApp للزبون</button>
-</div>
+<div class="card"><h2>🧾 بيانات الأوردر</h2><label>اسم الزبون</label><input id="name" type="text" autocomplete="off"><label>رقم الهاتف</label><input id="phone" type="tel" autocomplete="off"><div class="row"><div><label>قيمة الأوردر</label><input id="order" type="number" step="0.01"></div><div><label>الدليفري</label><input id="delivery" type="number" step="0.01"></div></div><label>مين بيدفع الدليفري؟</label><select id="deliveryPayer"><option value="customer">الزبون</option><option value="store">المتجر</option><option value="already_paid">مدفوع مسبقاً</option></select><label>حالة الدفع</label><select id="paymentStatus"><option value="cod">Cash on Delivery</option><option value="partial">مدفوع جزئياً</option><option value="paid">مدفوع</option></select><label>المبلغ المدفوع</label><input id="paid" type="number" step="0.01" value="0"><label>الإجمالي على الزبون</label><input id="total" type="number" step="0.01" readonly><div id="remainingBox" class="status"></div><button id="save" type="button">💾 حفظ الأوردر</button><button id="cancelEdit" class="edit" type="button" style="display:none">إلغاء التعديل</button><button id="whatsapp" class="wa" type="button">💬 WhatsApp للزبون</button></div>
 
-<div class="card">
-<h2>☁️ Online Database</h2>
-<div class="small">نفس الداتا بين الهاتف والكمبيوتر</div>
-<label>API URL</label><input id="apiUrl" type="url" placeholder="https://YOUR-API.onrender.com">
-<button id="connectApi" type="button">☁️ Connect & Sync</button>
-<button id="refreshOnline" class="edit" type="button">🔄 تحديث الأوردرات من Online</button>
-<div id="apiStatus" class="status">غير متصل — التطبيق يعمل محلياً.</div>
-</div>
+<div class="card"><h2>☁️ Online Database</h2><div class="small">نفس الداتا بين الهاتف والكمبيوتر</div><label>API URL</label><input id="apiUrl" type="url" placeholder="https://dekivery-scannner.onrender.com"><button id="connectApi" type="button">☁️ Connect & Sync</button><button id="refreshOnline" class="edit" type="button">🔄 تحديث الأوردرات من Online</button><div id="apiStatus" class="status">غير متصل.</div></div>
 
-<div class="card">
-<h2>📦 Saved Orders</h2>
-<div id="orders"></div>
-</div>
+<div class="card"><h2>📦 Saved Orders</h2><div id="orders"></div></div>
 
-<div class="card">
-<h2>📊 تقرير اليوم</h2>
-<label>التاريخ</label><input id="reportDate" type="date">
-<div id="reportSummary" class="summary status"></div>
-<label>WhatsApp المدير</label><input id="managerPhone" type="tel" placeholder="03xxxxxx">
-<button id="saveManager" type="button">💾 حفظ رقم المدير</button>
-<button id="sendReport" class="wa" type="button">📲 إرسال التقرير للمدير</button>
-<div id="managerStatus" class="small"></div>
-</div>
-</div>
+<div class="card"><h2>📊 تقرير يومي</h2><label>التاريخ</label><input id="reportDate" type="date"><div id="reportSummary" class="summary status"></div><button id="printA4" class="blue" type="button">🖨️ طباعة تقرير A4 — تفاصيل + صور</button><label>WhatsApp المدير</label><input id="managerPhone" type="tel" placeholder="03xxxxxx"><button id="saveManager" type="button">💾 حفظ رقم المدير</button><button id="sendReport" class="wa" type="button">📲 إرسال ملخص التقرير للمدير</button><div id="managerStatus" class="small"></div></div>
 
+<div class="card statement"><h2>🏪 Statement صاحب المتجر</h2><div class="small">كل أوردر اخترت فيه أن المتجر يدفع الدليفري يظهر هون كـمبلغ مستحق على المتجر.</div><div class="row"><div><label>من تاريخ</label><input id="statementFrom" type="date"></div><div><label>إلى تاريخ</label><input id="statementTo" type="date"></div></div><button id="refreshStatement" class="edit" type="button">🔄 تحديث Statement</button><div id="statementSummary" class="statbox"></div><div id="statementRows" class="tablewrap"></div><label>تسديد من صاحب المتجر</label><input id="storePaymentAmount" type="number" step="0.01" placeholder="0"><input id="storePaymentNote" type="text" placeholder="ملاحظة التسديد"><button id="saveStorePayment" type="button">💵 تسجيل تسديد من المتجر</button><div id="storePaymentStatus" class="small"></div></div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
-(function(){
-'use strict';
-
-const $ = id => document.getElementById(id);
-const els = {
- photo:$('photo'), preview:$('preview'), scan:$('scan'), status:$('status'),
- name:$('name'), phone:$('phone'), order:$('order'), delivery:$('delivery'),
- payer:$('deliveryPayer'), payment:$('paymentStatus'), paid:$('paid'), total:$('total'),
- save:$('save'), cancelEdit:$('cancelEdit'), whatsapp:$('whatsapp'),
- orders:$('orders'), reportDate:$('reportDate'), reportSummary:$('reportSummary'),
- managerPhone:$('managerPhone'), saveManager:$('saveManager'),
- sendReport:$('sendReport'), managerStatus:$('managerStatus'), remainingBox:$('remainingBox'), apiUrl:$('apiUrl'), connectApi:$('connectApi'), refreshOnline:$('refreshOnline'), apiStatus:$('apiStatus')
-};
-
-function status(msg, cls){
- els.status.textContent=msg;
- els.status.className='status '+(cls||'');
-}
-function digits(s){
- const ar='٠١٢٣٤٥٦٧٨٩', fa='۰۱۲۳۴۵۶۷۸۹';
- return String(s||'').replace(/[٠-٩]/g,c=>ar.indexOf(c)).replace(/[۰-۹]/g,c=>fa.indexOf(c));
-}
-function phoneNorm(v){
- let d=digits(v).replace(/\D/g,'');
- if(d.startsWith('00961')) d=d.slice(5);
- else if(d.startsWith('961')) d=d.slice(3);
- if(d.startsWith('0')) d=d.slice(1);
- return /^(3|70|71|76|78|79|81)\d{6}$/.test(d) ? '961'+d : '';
-}
-let onlineMode=false, onlineOrders=[];
+(function(){'use strict';
+const $=id=>document.getElementById(id);const els={photo:$('photo'),preview:$('preview'),scan:$('scan'),status:$('status'),name:$('name'),phone:$('phone'),order:$('order'),delivery:$('delivery'),payer:$('deliveryPayer'),payment:$('paymentStatus'),paid:$('paid'),total:$('total'),save:$('save'),cancelEdit:$('cancelEdit'),whatsapp:$('whatsapp'),orders:$('orders'),reportDate:$('reportDate'),reportSummary:$('reportSummary'),printA4:$('printA4'),managerPhone:$('managerPhone'),saveManager:$('saveManager'),sendReport:$('sendReport'),managerStatus:$('managerStatus'),remainingBox:$('remainingBox'),apiUrl:$('apiUrl'),connectApi:$('connectApi'),refreshOnline:$('refreshOnline'),apiStatus:$('apiStatus'),statementFrom:$('statementFrom'),statementTo:$('statementTo'),refreshStatement:$('refreshStatement'),statementSummary:$('statementSummary'),statementRows:$('statementRows'),storePaymentAmount:$('storePaymentAmount'),storePaymentNote:$('storePaymentNote'),saveStorePayment:$('saveStorePayment'),storePaymentStatus:$('storePaymentStatus')};
+let onlineMode=false,onlineOrders=[],currentPhotoData=null;
+function status(m,c){els.status.textContent=m;els.status.className='status '+(c||'')}
+function digits(s){const ar='٠١٢٣٤٥٦٧٨٩',fa='۰۱۲۳۴۵۶۷۸۹';return String(s||'').replace(/[٠-٩]/g,c=>ar.indexOf(c)).replace(/[۰-۹]/g,c=>fa.indexOf(c))}
+function phoneNorm(v){let d=digits(v).replace(/\D/g,'');if(d.startsWith('00961'))d=d.slice(5);else if(d.startsWith('961'))d=d.slice(3);if(d.startsWith('0'))d=d.slice(1);return /^(3|70|71|76|78|79|81)\d{6}$/.test(d)?'961'+d:''}
 function localOrders(){try{const x=JSON.parse(localStorage.getItem('delivery_orders')||'[]');return Array.isArray(x)?x:[]}catch(e){return []}}
-function setLocalOrders(a){localStorage.setItem('delivery_orders',JSON.stringify(a));}
-function mapRemote(o){return {id:o.id,name:o.customer_name||'',phone:o.phone||'',order:Number(o.order_amount||0),delivery:Number(o.delivery_fee||0),total:Number(o.order_amount||0)+(o.delivery_payer==='customer'?Number(o.delivery_fee||0):0),paid:Number(o.paid_amount||0),remaining:Number(o.remaining_amount||0),collectAmount:Number(o.collect_amount||0),deliveryPayer:o.delivery_payer||'customer',paymentStatus:o.payment_status||'cod',time:o.created_at?new Date(o.created_at).getTime():Date.now(),status:o.status||'active'}}
+function setLocalOrders(a){localStorage.setItem('delivery_orders',JSON.stringify(a))}
+function mapRemote(o){return{id:o.id,name:o.customer_name||'',phone:o.phone||'',order:Number(o.order_amount||0),delivery:Number(o.delivery_fee||0),total:Number(o.order_amount||0)+(o.delivery_payer==='customer'?Number(o.delivery_fee||0):0),paid:Number(o.paid_amount||0),remaining:Number(o.remaining_amount||0),collectAmount:Number(o.collect_amount||0),deliveryPayer:o.delivery_payer||'customer',paymentStatus:o.payment_status||'cod',notes:o.notes||'',photoData:o.photo_data||null,time:o.created_at?new Date(o.created_at).getTime():Date.now(),status:o.status||'active'}}
 function getOrders(){return onlineMode?onlineOrders:localOrders()}
-function apiBase(){return (els.apiUrl.value||localStorage.getItem('delivery_api_url')||'').trim().replace(/\/$/,'')}
-async function api(path,options={}){const base=apiBase();if(!base)throw new Error('ضع API URL أولاً');const method=(options.method||'GET').toUpperCase();const headers={...(options.headers||{})};if(method!=='GET'&&method!=='HEAD'&&method!=='OPTIONS'){headers['Content-Type']='application/json';}const r=await fetch(base+path,{...options,method,headers,mode:'cors'});const text=await r.text();let data={};try{data=text?JSON.parse(text):{}}catch{}if(!r.ok)throw new Error(data.detail||('HTTP '+r.status));return data}
+function apiBase(){return(els.apiUrl.value||localStorage.getItem('delivery_api_url')||'').trim().replace(/\/$/,'')}
+async function api(path,options={}){const base=apiBase();if(!base)throw new Error('ضع API URL أولاً');const method=(options.method||'GET').toUpperCase();const headers={...(options.headers||{})};if(method!=='GET'&&method!=='HEAD'&&method!=='OPTIONS')headers['Content-Type']='application/json';const r=await fetch(base+path,{...options,method,headers,mode:'cors'});const text=await r.text();let data={};try{data=text?JSON.parse(text):{}}catch{}if(!r.ok)throw new Error(data.detail||('HTTP '+r.status));return data}
 async function loadOnline(){const rows=await api('/orders');onlineOrders=Array.isArray(rows)?rows.map(mapRemote):[];return onlineOrders}
-async function migrateLocalIfEmpty(){const local=localOrders();if(!local.length||onlineOrders.length)return false;for(const o of local){await api('/orders',{method:'POST',body:JSON.stringify({customer_name:o.name||'',phone:o.phone||'',order_amount:Number(o.order||0),delivery_fee:Number(o.delivery||0),delivery_payer:o.deliveryPayer||'customer',payment_status:o.paymentStatus||'cod',paid_amount:Number(o.paid||0),status:o.status||'active',client_time:o.time||Date.now()})})}await loadOnline();return true}
-async function connectOnline(){const base=els.apiUrl.value.trim().replace(/\/$/,'');if(!base){els.apiStatus.textContent='❌ ضع API URL أولاً.';els.apiStatus.className='status bad';return}localStorage.setItem('delivery_api_url',base);els.connectApi.disabled=true;els.apiStatus.textContent='☁️ عم نتصل...';els.apiStatus.className='status';try{const h=await api('/health');if(!h.ok)throw new Error('Database غير متصلة');onlineMode=true;await loadOnline();if(!onlineOrders.length&&localOrders().length){els.apiStatus.textContent='☁️ قاعدة البيانات فاضية. عم ننقل الداتا الحالية بأمان...';await migrateLocalIfEmpty()}await loadOnline();render();updateReport();els.apiStatus.textContent='✅ Online Connected — '+onlineOrders.length+' orders';els.apiStatus.className='status ok'}catch(e){onlineMode=false;onlineOrders=[];els.apiStatus.textContent='❌ '+e.message;els.apiStatus.className='status bad'}finally{els.connectApi.disabled=false}}
-function calc(){
- const ord=Number(els.order.value)||0, del=Number(els.delivery.value)||0, paid=Math.max(0,Number(els.paid.value)||0);
- const customerTotal=ord+(els.payer.value==='customer'?del:0);
- let due=els.payment.value==='paid'?0:Math.max(0,customerTotal-paid);
- if(els.payment.value==='cod') due=customerTotal;
- els.total.value=customerTotal.toFixed(2);
- els.remainingBox.textContent='💵 المدفوع: $'+paid.toFixed(2)+'  |  🔴 المتبقي: $'+due.toFixed(2)+'  |  💰 تحصيل الآن: $'+due.toFixed(2);
- return {customerTotal,paid,due};
-}
-function clearForm(){
- els.name.value='';els.phone.value='';els.order.value='';els.delivery.value='';els.paid.value='0';
- els.payer.value='customer';els.payment.value='cod';els.total.value='0.00';calc();
- els.photo.value='';els.preview.style.display='none';
-}
-function render(){
- const a=getOrders();els.orders.innerHTML='';
- if(!a.length){els.orders.innerHTML='<div class="small">لا يوجد أوردرات بعد.</div>';return}
- a.slice().reverse().forEach((o,rev)=>{
-   const i=a.length-1-rev, d=document.createElement('div'); d.className='order';
-   d.innerHTML='<b>👤 '+escapeHtml(o.name||'زبون')+'</b><br>📱 '+escapeHtml(o.phone||'')+
-   '<br>🧾 الأوردر: $'+Number(o.order||0).toFixed(2)+
-   '<br>🚚 الدليفري: $'+Number(o.delivery||0).toFixed(2)+
-   '<br>💵 المدفوع: $'+Number(o.paid||0).toFixed(2)+
-   '<br>💰 التحصيل الآن: $'+Number(o.remaining||0).toFixed(2)+
-   '<div class="actions"><button class="wa" data-wa="'+i+'">💬 WhatsApp</button>'+
-   '<button class="edit" data-edit="'+i+'">✏️ تعديل</button>'+
-   '<button class="danger" data-del="'+i+'">🗑️ حذف</button></div>';
-   els.orders.appendChild(d);
- });
-}
-function escapeHtml(x){return String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
-function dateKey(t){const d=new Date(t);return Number.isNaN(d.getTime())?'':d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function collect(o){return Number(o.remaining||0);}
-function updateReport(){
- const day=els.reportDate.value, a=getOrders().filter(o=>dateKey(o.time)===day && o.status!=='cancelled');
- const products=a.reduce((s,o)=>s+Number(o.order||0),0), delivery=a.reduce((s,o)=>s+Number(o.delivery||0),0), due=a.reduce((s,o)=>s+collect(o),0);
- els.reportSummary.innerHTML='<b>'+a.length+'</b> أوردر<br>قيمة الأوردرات: <b>$'+products.toFixed(2)+'</b><br>الدليفري: <b>$'+delivery.toFixed(2)+'</b><br>💰 التحصيل: <b>$'+due.toFixed(2)+'</b>';
-}
-function edit(i){
- const a=getOrders(),o=a[i];if(!o)return;
- els.name.value=o.name||'';els.phone.value=o.phone||'';els.order.value=o.order||0;els.delivery.value=o.delivery||0;
- els.payer.value=o.deliveryPayer||'customer';els.payment.value=o.paymentStatus||'cod';els.paid.value=o.paid||0;
- localStorage.setItem('editing_order_index',String(i));els.save.textContent='🔄 تحديث الأوردر';els.cancelEdit.style.display='block';calc();
- status('عم تعدّل الأوردر: '+(o.name||''),'ok');
- window.scrollTo({top:0,behavior:'smooth'});
-}
-async function doSave(){
- try{const name=els.name.value.trim(),p=phoneNorm(els.phone.value);if(!name){status('❌ أدخل اسم الزبون.','bad');return}if(!p){status('❌ أدخل رقم هاتف لبناني صحيح.','bad');return}const c=calc(),a=getOrders(),raw=localStorage.getItem('editing_order_index'),idx=raw===null?-1:Number(raw),old=idx>=0?a[idx]:null;const payload={customer_name:name,phone:p,order_amount:Number(els.order.value)||0,delivery_fee:Number(els.delivery.value)||0,delivery_payer:els.payer.value,payment_status:els.payment.value,paid_amount:c.paid,status:old&&old.status?old.status:'active',client_time:old&&old.time?old.time:Date.now()};if(onlineMode){if(idx>=0&&old&&old.id)await api('/orders/'+old.id,{method:'PUT',body:JSON.stringify(payload)});else await api('/orders',{method:'POST',body:JSON.stringify(payload)});await loadOnline()}else{const o={name,phone:p,order:payload.order_amount,delivery:payload.delivery_fee,total:c.customerTotal,paid:c.paid,remaining:c.due,collectAmount:c.due,deliveryPayer:payload.delivery_payer,paymentStatus:payload.payment_status,time:payload.client_time,status:payload.status};if(idx>=0&&a[idx])a[idx]=o;else a.push(o);setLocalOrders(a)}localStorage.removeItem('editing_order_index');render();updateReport();clearForm();els.save.textContent='💾 حفظ الأوردر';els.cancelEdit.style.display='none';status(idx>=0?'✅ تم تحديث الأوردر بنجاح.':'✅ تم حفظ الأوردر بنجاح.','ok')}catch(e){console.error(e);status('❌ Save Error: '+e.message,'bad')}}
-
-els.order.addEventListener('input',calc);els.delivery.addEventListener('input',calc);els.paid.addEventListener('input',calc);
-els.payer.addEventListener('change',calc);els.payment.addEventListener('change',calc);
-els.photo.addEventListener('change',()=>{
- const f=els.photo.files[0];if(!f)return;
- els.preview.src=URL.createObjectURL(f);els.preview.style.display='block';
-});
-els.save.addEventListener('click',e=>{e.preventDefault();doSave();});
-els.cancelEdit.addEventListener('click',()=>{localStorage.removeItem('editing_order_index');els.save.textContent='💾 حفظ الأوردر';els.cancelEdit.style.display='none';clearForm();status('تم إلغاء التعديل.','ok');});
-
-els.orders.addEventListener('click',async e=>{
- const wa=e.target.closest('[data-wa]'), ed=e.target.closest('[data-edit]'), de=e.target.closest('[data-del]');
- if(wa){
-   const o=getOrders()[Number(wa.dataset.wa)],p=phoneNorm(o&&o.phone);if(!p)return;
-   window.open('https://wa.me/'+p+'?text='+encodeURIComponent('مرحباً '+(o.name||'')+'، بخصوص طلبكم.'),'_blank');
- }
- if(ed) edit(Number(ed.dataset.edit));
- if(de){
-   const i=Number(de.dataset.del),a=getOrders(); if(!a[i])return;
-   if(confirm('حذف الأوردر؟')){try{if(onlineMode&&a[i].id){await api('/orders/'+a[i].id,{method:'DELETE'});await loadOnline();}else{a.splice(i,1);setLocalOrders(a)}render();updateReport();status('تم حذف الأوردر.','ok')}catch(err){status('❌ Delete Error: '+err.message,'bad')}}
- }
-});
-
-els.whatsapp.addEventListener('click',()=>{
- const p=phoneNorm(els.phone.value);if(!p){status('❌ رقم الهاتف غير صحيح.','bad');return}
- window.open('https://wa.me/'+p+'?text='+encodeURIComponent('مرحباً '+els.name.value+'، بخصوص طلبكم بقيمة $'+(Number(els.total.value)||0).toFixed(2)+'.'),'_blank');
-});
-
-els.scan.addEventListener('click',async()=>{
- const f=els.photo.files[0];if(!f){status('❌ اختار صورة أولاً.','bad');return}
- if(!window.Tesseract){status('❌ محرك قراءة الصورة لم يحمّل. افتح الإنترنت وجرب مرة ثانية.','bad');return}
- els.scan.disabled=true;status('📷 جاري قراءة الصورة...');
- try{
-   const r=await Tesseract.recognize(f,'eng+ara',{logger:m=>{
-     if(typeof m.progress==='number') status('📷 جاري القراءة: '+Math.round(m.progress*100)+'%');
-   }});
-   const text=digits(r.data.text||'');
-   const phones=text.match(/(?:00961|961|0)?(?:3|70|71|76|78|79|81)[\s-]?\d{3}[\s-]?\d{3}/g)||[];
-   if(phones[0])els.phone.value=phones[0];
-   const nums=(text.match(/\d+(?:[.,]\d{1,2})?/g)||[]).map(x=>parseFloat(x.replace(',','.'))).filter(x=>x>0);
-   const money=nums.filter(x=>x<100000);
-   if(money.length>=2){els.order.value=money[money.length-2];els.delivery.value=money[money.length-1];}
-   else if(money.length===1)els.order.value=money[0];
-   calc();status('✅ تمت قراءة الصورة. راجع البيانات ثم اضغط حفظ.','ok');
- }catch(e){console.error(e);status('❌ فشلت قراءة الصورة. جرّب صورة أوضح.','bad')}
- finally{els.scan.disabled=false;}
-});
-
-els.reportDate.value=new Date().toISOString().slice(0,10);
-els.reportDate.addEventListener('change',updateReport);
-els.managerPhone.value=localStorage.getItem('manager_whatsapp')||'';
-els.saveManager.addEventListener('click',()=>{
- const p=phoneNorm(els.managerPhone.value);if(!p){els.managerStatus.textContent='رقم المدير غير صحيح.';return}
- localStorage.setItem('manager_whatsapp',p);els.managerPhone.value=p;els.managerStatus.textContent='✅ تم حفظ رقم المدير: '+p;
-});
-els.sendReport.addEventListener('click',()=>{
- const p=phoneNorm(els.managerPhone.value);
- if(!p){els.managerStatus.textContent='❌ أدخل رقم المدير واحفظه أولاً.';return}
- const day=els.reportDate.value;
- const a=getOrders().filter(o=>dateKey(o.time)===day&&o.status!=='cancelled');
- if(!a.length){els.managerStatus.textContent='⚠️ لا يوجد أوردرات لهذا التاريخ: '+day;return}
- let msg='🚚 DELIVERY DAILY REPORT\n'+day+'\n\n';
- a.forEach((o,i)=>msg+='ORDER '+(i+1)+'\nCustomer: '+o.name+'\nPhone: '+o.phone+'\nOrder: $'+Number(o.order||0).toFixed(2)+'\nDelivery: $'+Number(o.delivery||0).toFixed(2)+'\nCollect: $'+collect(o).toFixed(2)+'\n\n');
- msg+='TOTAL COLLECT: $'+a.reduce((s,o)=>s+collect(o),0).toFixed(2);
- window.location.href='https://wa.me/'+p+'?text='+encodeURIComponent(msg);
-});
-
-els.refreshOnline.addEventListener('click',async()=>{
- try{
-  if(!apiBase()){els.apiStatus.textContent='❌ ضع API URL أولاً.';els.apiStatus.className='status bad';return}
-  els.refreshOnline.disabled=true;els.apiStatus.textContent='☁️ عم نحدّث الأوردرات...';
-  onlineMode=true;await loadOnline();render();updateReport();
-  els.apiStatus.textContent='✅ تم تحديث Online — '+onlineOrders.length+' orders';els.apiStatus.className='status ok';
- }catch(e){console.error(e);els.apiStatus.textContent='❌ '+e.message;els.apiStatus.className='status bad';}
- finally{els.refreshOnline.disabled=false;}
-});
-
-els.apiUrl.value=localStorage.getItem('delivery_api_url')||'';els.connectApi.addEventListener('click',connectOnline);if(els.apiUrl.value)connectOnline();calc();render();updateReport();
+async function migrateLocalIfEmpty(){const local=localOrders();if(!local.length||onlineOrders.length)return false;for(const o of local){await api('/orders',{method:'POST',body:JSON.stringify({customer_name:o.name||'',phone:o.phone||'',order_amount:Number(o.order||0),delivery_fee:Number(o.delivery||0),delivery_payer:o.deliveryPayer||'customer',payment_status:o.paymentStatus||'cod',paid_amount:Number(o.paid||0),status:o.status||'active',client_time:o.time||Date.now(),photo_data:o.photoData||null})})}await loadOnline();return true}
+async function connectOnline(){const base=els.apiUrl.value.trim().replace(/\/$/,'');if(!base){els.apiStatus.textContent='❌ ضع API URL أولاً.';els.apiStatus.className='status bad';return}localStorage.setItem('delivery_api_url',base);els.connectApi.disabled=true;els.apiStatus.textContent='☁️ عم نتصل...';els.apiStatus.className='status';try{const h=await api('/health');if(!h.ok)throw new Error('Database غير متصلة');onlineMode=true;await loadOnline();if(!onlineOrders.length&&localOrders().length){els.apiStatus.textContent='☁️ قاعدة البيانات فاضية. عم ننقل الداتا الحالية بأمان...';await migrateLocalIfEmpty()}await loadOnline();render();updateReport();await updateStatement();els.apiStatus.textContent='✅ Online Connected — '+onlineOrders.length+' orders';els.apiStatus.className='status ok'}catch(e){onlineMode=false;onlineOrders=[];els.apiStatus.textContent='❌ '+e.message;els.apiStatus.className='status bad'}finally{els.connectApi.disabled=false}}
+function calc(){const ord=Number(els.order.value)||0,del=Number(els.delivery.value)||0,paid=Math.max(0,Number(els.paid.value)||0);const customerTotal=ord+(els.payer.value==='customer'?del:0);let due=els.payment.value==='paid'?0:Math.max(0,customerTotal-paid);if(els.payment.value==='cod')due=customerTotal;els.total.value=customerTotal.toFixed(2);els.remainingBox.textContent='💵 المدفوع: $'+paid.toFixed(2)+' | 🔴 المتبقي: $'+due.toFixed(2)+' | 💰 تحصيل الآن: $'+due.toFixed(2)+(els.payer.value==='store'?' | 🏪 على المتجر: $'+del.toFixed(2):els.payer.value==='already_paid'?' | 🏪 الدليفري مدفوع مسبقاً':'');return{customerTotal,paid,due}}
+function clearForm(){els.name.value='';els.phone.value='';els.order.value='';els.delivery.value='';els.paid.value='0';els.payer.value='customer';els.payment.value='cod';els.total.value='0.00';currentPhotoData=null;els.photo.value='';els.preview.src='';els.preview.style.display='none';localStorage.removeItem('editing_order_index');calc()}
+function render(){const a=getOrders();els.orders.innerHTML='';if(!a.length){els.orders.innerHTML='<div class="small">لا يوجد أوردرات بعد.</div>';return}a.slice().reverse().forEach((o,rev)=>{const i=a.length-1-rev,d=document.createElement('div');d.className='order';d.innerHTML='<b>👤 '+escapeHtml(o.name||'زبون')+'</b><br>📱 '+escapeHtml(o.phone||'')+'<br>🧾 الأوردر: $'+Number(o.order||0).toFixed(2)+'<br>🚚 الدليفري: $'+Number(o.delivery||0).toFixed(2)+'<br>👛 دافع الدليفري: '+(o.deliveryPayer==='store'?'المتجر':o.deliveryPayer==='already_paid'?'مدفوع مسبقاً':'الزبون')+'<br>💵 المدفوع: $'+Number(o.paid||0).toFixed(2)+'<br>💰 التحصيل: $'+Number(o.remaining||0).toFixed(2)+(o.photoData?'<img class="thumb" src="'+escapeAttr(o.photoData)+'">':'')+'<div class="actions"><button class="wa" data-wa="'+i+'">💬 WhatsApp</button><button class="edit" data-edit="'+i+'">✏️ تعديل</button><button class="danger" data-del="'+i+'">🗑️ حذف</button></div>';els.orders.appendChild(d)})}
+function escapeHtml(x){return String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}function escapeAttr(x){return String(x??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function dateKey(t){const d=new Date(t);return Number.isNaN(d.getTime())?'':d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function collect(o){return Number(o.remaining||0)}
+function ordersForDate(day){return getOrders().filter(o=>dateKey(o.time)===day&&o.status!=='cancelled')}
+function updateReport(){const day=els.reportDate.value,a=ordersForDate(day),products=a.reduce((s,o)=>s+Number(o.order||0),0),deliveryCustomer=a.reduce((s,o)=>s+(o.deliveryPayer==='customer'?Number(o.delivery||0):0),0),deliveryStore=a.reduce((s,o)=>s+(o.deliveryPayer==='store'?Number(o.delivery||0):0),0),due=a.reduce((s,o)=>s+collect(o),0);els.reportSummary.innerHTML='<b>'+a.length+'</b> أوردر<br>قيمة الأوردرات: <b>$'+products.toFixed(2)+'</b><br>دليفري على الزبائن: <b>$'+deliveryCustomer.toFixed(2)+'</b><br>دليفري على المتجر: <b>$'+deliveryStore.toFixed(2)+'</b><br>💰 التحصيل من الزبائن: <b>$'+due.toFixed(2)+'</b>';}
+function edit(i){const a=getOrders(),o=a[i];if(!o)return;els.name.value=o.name||'';els.phone.value=o.phone||'';els.order.value=o.order||0;els.delivery.value=o.delivery||0;els.payer.value=o.deliveryPayer||'customer';els.payment.value=o.paymentStatus||'cod';els.paid.value=o.paid||0;currentPhotoData=o.photoData||null;if(currentPhotoData){els.preview.src=currentPhotoData;els.preview.style.display='block'}else{els.preview.src='';els.preview.style.display='none'}localStorage.setItem('editing_order_index',String(i));els.save.textContent='🔄 تحديث الأوردر';els.cancelEdit.style.display='block';calc();status('عم تعدّل الأوردر: '+(o.name||''),'ok');window.scrollTo({top:0,behavior:'smooth'})}
+async function doSave(){try{const name=els.name.value.trim(),p=phoneNorm(els.phone.value);if(!name){status('❌ أدخل اسم الزبون.','bad');return}if(!p){status('❌ أدخل رقم هاتف لبناني صحيح.','bad');return}const c=calc(),a=getOrders(),raw=localStorage.getItem('editing_order_index'),idx=raw===null?-1:Number(raw),old=idx>=0?a[idx]:null;const payload={customer_name:name,phone:p,order_amount:Number(els.order.value)||0,delivery_fee:Number(els.delivery.value)||0,delivery_payer:els.payer.value,payment_status:els.payment.value,paid_amount:c.paid,status:old&&old.status?old.status:'active',client_time:old&&old.time?old.time:Date.now(),photo_data:currentPhotoData||null};if(onlineMode){if(idx>=0&&old&&old.id)await api('/orders/'+old.id,{method:'PUT',body:JSON.stringify(payload)});else await api('/orders',{method:'POST',body:JSON.stringify(payload)});await loadOnline()}else{const o={name,phone:p,order:payload.order_amount,delivery:payload.delivery_fee,total:c.customerTotal,paid:c.paid,remaining:c.due,collectAmount:c.due,deliveryPayer:payload.delivery_payer,paymentStatus:payload.payment_status,time:payload.client_time,status:payload.status,photoData:currentPhotoData||null};if(idx>=0&&a[idx])a[idx]=o;else a.push(o);setLocalOrders(a)}render();updateReport();await updateStatement();clearForm();els.save.textContent='💾 حفظ الأوردر';els.cancelEdit.style.display='none';status(idx>=0?'✅ تم تحديث الأوردر بنجاح.':'✅ تم حفظ الأوردر بنجاح.','ok')}catch(e){console.error(e);status('❌ Save Error: '+e.message,'bad')}}
+async function compressImage(file){return new Promise((resolve,reject)=>{const img=new Image();const reader=new FileReader();reader.onload=()=>{img.onload=()=>{const max=1200;let w=img.naturalWidth,h=img.naturalHeight;if(w>max||h>max){const s=Math.min(max/w,max/h);w=Math.round(w*s);h=Math.round(h*s)}const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d');ctx.drawImage(img,0,0,w,h);resolve(c.toDataURL('image/jpeg',0.72))};img.onerror=reject;img.src=reader.result};reader.onerror=reject;reader.readAsDataURL(file)})}
+async function printA4(){const day=els.reportDate.value,a=ordersForDate(day);if(!a.length){els.managerStatus.textContent='⚠️ لا يوجد أوردرات لهذا التاريخ.';return}const pages=a.map((o,i)=>`<section class="page"><div class="half details"><h1>🚚 Delivery Scanner</h1><h2>تفاصيل الأوردر #${i+1}</h2><p><b>التاريخ:</b> ${day}</p><p><b>الزبون:</b> ${escapeHtml(o.name)}</p><p><b>الهاتف:</b> ${escapeHtml(o.phone)}</p><p><b>قيمة الأوردر:</b> $${Number(o.order||0).toFixed(2)}</p><p><b>الدليفري:</b> $${Number(o.delivery||0).toFixed(2)}</p><p><b>دافع الدليفري:</b> ${o.deliveryPayer==='store'?'صاحب المتجر':o.deliveryPayer==='already_paid'?'مدفوع مسبقاً':'الزبون'}</p><p><b>حالة الدفع:</b> ${o.paymentStatus}</p><p><b>المدفوع:</b> $${Number(o.paid||0).toFixed(2)}</p><p><b>المتبقي/التحصيل:</b> $${Number(o.remaining||0).toFixed(2)}</p><p><b>ملاحظات:</b> ${escapeHtml(o.notes||'')}</p></div><div class="half photo">${o.photoData?'<img src="'+escapeAttr(o.photoData)+'">':'<div class="nop">لا توجد صورة محفوظة لهذا الأوردر</div>'}<div class="caption">صورة ورقة الطلب</div></div></section>`).join('');const w=window.open('','_blank');if(!w){els.managerStatus.textContent='❌ المتصفح منع نافذة الطباعة. اسمح بالنوافذ المنبثقة.';return}w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Delivery Report '+day+'</title><style>@page{size:A4 portrait;margin:0}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;direction:rtl}.page{width:210mm;height:297mm;display:flex;flex-direction:row;page-break-after:always}.half{width:50%;height:100%;padding:14mm;border:1px solid #222}.details{direction:rtl}.details h1{font-size:20px;margin:0 0 10mm}.details h2{font-size:18px;border-bottom:2px solid #111;padding-bottom:4mm}.details p{font-size:15px;line-height:1.7;margin:5mm 0}.photo{display:flex;flex-direction:column;align-items:center;justify-content:center;direction:rtl}.photo img{max-width:100%;max-height:235mm;object-fit:contain}.caption{margin-top:5mm;font-weight:bold}.nop{color:#777;text-align:center}</style></head><body>'+pages+'</body></html>');w.document.close();setTimeout(()=>w.print(),500)}
+async function updateStatement(){const from=els.statementFrom.value,to=els.statementTo.value;if(!apiBase()){renderStatementFromOrders();return}try{const q=[];if(from)q.push('from_date='+encodeURIComponent(from));if(to)q.push('to_date='+encodeURIComponent(to));const r=await api('/store-statement'+(q.length?'?'+q.join('&'):''));renderStatement(r)}catch(e){renderStatementFromOrders()}}
+function renderStatementFromOrders(){const from=els.statementFrom.value,to=els.statementTo.value;const rows=getOrders().filter(o=>o.deliveryPayer==='store'&&o.status!=='cancelled'&&(!from||dateKey(o.time)>=from)&&(!to||dateKey(o.time)<=to));const total=rows.reduce((s,o)=>s+Number(o.delivery||0),0);renderStatement({rows:rows.map(o=>({id:o.id,customer_name:o.name,phone:o.phone,order_amount:o.order,delivery_fee:o.delivery,created_at:o.time})),delivery_total:total,store_payments_total:0,balance:total})}
+function renderStatement(r){els.statementSummary.innerHTML='<div class="stat">دليفري على المتجر<b>$'+Number(r.delivery_total||0).toFixed(2)+'</b></div><div class="stat">تسديدات المتجر<b>$'+Number(r.store_payments_total||0).toFixed(2)+'</b></div><div class="stat">الرصيد المتبقي<b>$'+Number(r.balance||0).toFixed(2)+'</b></div>';if(!r.rows.length){els.statementRows.innerHTML='<div class="small">لا يوجد دليفري على المتجر ضمن الفترة.</div>';return}let h='<table><thead><tr><th>التاريخ</th><th>الزبون</th><th>الدليفري</th></tr></thead><tbody>';r.rows.forEach(o=>h+='<tr><td>'+dateKey(o.created_at)+'</td><td>'+escapeHtml(o.customer_name||'')+'</td><td>$'+Number(o.delivery_fee||0).toFixed(2)+'</td></tr>');h+='</tbody></table>';els.statementRows.innerHTML=h}
+els.order.addEventListener('input',calc);els.delivery.addEventListener('input',calc);els.paid.addEventListener('input',calc);els.payer.addEventListener('change',calc);els.payment.addEventListener('change',calc);
+els.photo.addEventListener('change',async()=>{const f=els.photo.files[0];if(!f)return;try{currentPhotoData=await compressImage(f);els.preview.src=currentPhotoData;els.preview.style.display='block';status('✅ الصورة جاهزة للحفظ مع الأوردر.','ok')}catch(e){status('❌ تعذر تجهيز الصورة.','bad')}});
+els.save.addEventListener('click',e=>{e.preventDefault();doSave()});els.cancelEdit.addEventListener('click',()=>{clearForm();els.save.textContent='💾 حفظ الأوردر';els.cancelEdit.style.display='none';status('تم إلغاء التعديل.','ok')});
+els.orders.addEventListener('click',async e=>{const wa=e.target.closest('[data-wa]'),ed=e.target.closest('[data-edit]'),de=e.target.closest('[data-del]');if(wa){const o=getOrders()[Number(wa.dataset.wa)],p=phoneNorm(o&&o.phone);if(p)window.location.href='https://wa.me/'+p+'?text='+encodeURIComponent('مرحباً '+(o.name||'')+'، بخصوص طلبكم.')}if(ed)edit(Number(ed.dataset.edit));if(de){const i=Number(de.dataset.del),a=getOrders();if(!a[i])return;if(confirm('حذف الأوردر؟')){try{if(onlineMode&&a[i].id){await api('/orders/'+a[i].id,{method:'DELETE'});await loadOnline()}else{a.splice(i,1);setLocalOrders(a)}render();updateReport();await updateStatement();status('تم حذف الأوردر.','ok')}catch(err){status('❌ Delete Error: '+err.message,'bad')}}}});
+els.whatsapp.addEventListener('click',()=>{const p=phoneNorm(els.phone.value);if(!p){status('❌ رقم الهاتف غير صحيح.','bad');return}window.location.href='https://wa.me/'+p+'?text='+encodeURIComponent('مرحباً '+els.name.value+'، بخصوص طلبكم بقيمة $'+(Number(els.total.value)||0).toFixed(2)+'.')});
+els.scan.addEventListener('click',async()=>{const f=els.photo.files[0];if(!f){status('❌ اختار صورة أولاً.','bad');return}if(!window.Tesseract){status('❌ محرك قراءة الصورة لم يحمّل.','bad');return}els.scan.disabled=true;status('📷 جاري قراءة الصورة...');try{const r=await Tesseract.recognize(f,'eng+ara',{logger:m=>{if(typeof m.progress==='number')status('📷 جاري القراءة: '+Math.round(m.progress*100)+'%')}});const text=digits(r.data.text||'');const phones=text.match(/(?:00961|961|0)?(?:3|70|71|76|78|79|81)[\s-]?\d{3}[\s-]?\d{3}/g)||[];if(phones[0])els.phone.value=phones[0];const nums=(text.match(/\d+(?:[.,]\d{1,2})?/g)||[]).map(x=>parseFloat(x.replace(',','.'))).filter(x=>x>0),money=nums.filter(x=>x<100000);if(money.length>=2){els.order.value=money[money.length-2];els.delivery.value=money[money.length-1]}else if(money.length===1)els.order.value=money[0];calc();status('✅ تمت قراءة الصورة. راجع البيانات ثم اضغط حفظ.','ok')}catch(e){console.error(e);status('❌ فشلت قراءة الصورة. جرّب صورة أوضح.','bad')}finally{els.scan.disabled=false}});
+els.reportDate.value=dateKey(Date.now());els.statementFrom.value=els.reportDate.value;els.statementTo.value=els.reportDate.value;els.reportDate.addEventListener('change',()=>{updateReport();updateStatement()});els.saveManager.addEventListener('click',()=>{const p=phoneNorm(els.managerPhone.value);if(!p){els.managerStatus.textContent='❌ رقم المدير غير صحيح.';return}localStorage.setItem('manager_whatsapp',p);els.managerPhone.value=p;els.managerStatus.textContent='✅ تم حفظ رقم المدير.'});els.sendReport.addEventListener('click',()=>{const p=phoneNorm(els.managerPhone.value);if(!p){els.managerStatus.textContent='❌ أدخل رقم المدير واحفظه أولاً.';return}const day=els.reportDate.value,a=ordersForDate(day);if(!a.length){els.managerStatus.textContent='⚠️ لا يوجد أوردرات لهذا التاريخ: '+day;return}let msg='🚚 DELIVERY DAILY REPORT\n'+day+'\n\n';a.forEach((o,i)=>msg+='ORDER '+(i+1)+'\nCustomer: '+o.name+'\nPhone: '+o.phone+'\nOrder: $'+Number(o.order||0).toFixed(2)+'\nDelivery: $'+Number(o.delivery||0).toFixed(2)+'\nDelivery payer: '+o.deliveryPayer+'\nCollect: $'+collect(o).toFixed(2)+'\n\n');msg+='TOTAL COLLECT: $'+a.reduce((s,o)=>s+collect(o),0).toFixed(2);window.location.href='https://wa.me/'+p+'?text='+encodeURIComponent(msg)});els.printA4.addEventListener('click',printA4);els.refreshOnline.addEventListener('click',async()=>{try{onlineMode=true;await loadOnline();render();updateReport();await updateStatement();els.apiStatus.textContent='✅ تم تحديث Online — '+onlineOrders.length+' orders';els.apiStatus.className='status ok'}catch(e){els.apiStatus.textContent='❌ '+e.message;els.apiStatus.className='status bad'}});els.refreshStatement.addEventListener('click',updateStatement);els.statementFrom.addEventListener('change',updateStatement);els.statementTo.addEventListener('change',updateStatement);els.saveStorePayment.addEventListener('click',async()=>{const amount=Number(els.storePaymentAmount.value)||0;if(amount<=0){els.storePaymentStatus.textContent='❌ أدخل مبلغ التسديد.';return}try{if(!apiBase())throw new Error('اتصل بالـOnline أولاً');await api('/store-payments',{method:'POST',body:JSON.stringify({amount,notes:els.storePaymentNote.value.trim(),client_time:Date.now()})});els.storePaymentAmount.value='';els.storePaymentNote.value='';els.storePaymentStatus.textContent='✅ تم تسجيل تسديد المتجر.';await updateStatement()}catch(e){els.storePaymentStatus.textContent='❌ '+e.message}});
+els.apiUrl.value=localStorage.getItem('delivery_api_url')||'https://dekivery-scannner.onrender.com';els.managerPhone.value=localStorage.getItem('manager_whatsapp')||'';els.connectApi.addEventListener('click',connectOnline);calc();render();updateReport();if(els.apiUrl.value)connectOnline();
 })();
-</script>
-</body>
-</html>
+</script></body></html>
